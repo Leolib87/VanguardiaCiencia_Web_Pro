@@ -1,0 +1,182 @@
+:root {
+	--accent: #0070f3;
+	--accent-dark: #0056b3;
+	--accent-light: #e6f2ff;
+	--black: 10, 10, 10;
+	--gray-dark: 33, 33, 33;
+	--gray-med: 102, 102, 102;
+	--gray-light: 240, 242, 245;
+	--grid-color: rgba(0, 112, 243, 0.03);
+	--bg-color: #ffffff;
+	--text-color: #1a1a1a;
+	--text-muted: #666;
+	--header-bg: rgba(255, 255, 255, 0.8);
+	--card-bg: #ffffff;
+	--card-border: #f0f0f0;
+	--card-shadow: rgba(0, 0, 0, 0.1);
+	--footer-bg: #f8f9fa;
+	--section-bg: #fafafa;
+	--border-color: #eee;
+}
+
+[data-theme='dark'] {
+	--bg-color: #0a0a0a;
+	--text-color: #f0f0f0;
+	--text-muted: #aaa;
+	--gray-dark: #f0f0f0;
+	--gray-med: #aaa;
+	--gray-light: #222;
+	--grid-color: rgba(255, 255, 255, 0.03);
+	--black: 255, 255, 255;
+	--header-bg: rgba(10, 10, 10, 0.8);
+	--card-bg: #161616;
+	--card-border: #222;
+	--card-shadow: rgba(0, 0, 0, 0.4);
+	--footer-bg: #0f0f0f;
+	--section-bg: #111;
+	--border-color: #222;
+	--accent-light: rgba(0, 112, 243, 0.2);
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+html, body {
+	max-width: 100%;
+	overflow-x: hidden;
+}
+
+body {
+	font-family: 'Inter', system-ui, sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	/* Fondo de cuadrícula técnica sutil */
+	background-image: 
+		linear-gradient(var(--grid-color) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+	background-size: 40px 40px;
+	font-size: 18px;
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main {
+	width: 1020px;
+	max-width: calc(100% - 2rem);
+	margin: auto;
+	padding: 4rem 1rem;
+}
+
+/* Tipografía Editorial para Artículos */
+.prose {
+	font-family: 'Source Serif 4', serif;
+	font-size: 21px;
+	line-height: 1.8;
+	color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Roboto Mono', monospace;
+	font-weight: 700;
+	color: var(--text-color);
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+}
+
+h1 { font-size: 3rem; margin-bottom: 2rem; }
+h2 { font-size: 2rem; margin-top: 3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+
+/* Estilo de Tarjetas Modernas */
+.card {
+	background: var(--card-bg);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--card-border);
+	border-radius: 20px;
+	transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.card:hover {
+	transform: translateY(-8px);
+	box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+	border-color: var(--accent);
+}
+
+/* Badges de Categoría */
+.badge {
+	display: inline-block;
+	padding: 0.25rem 0.75rem;
+	background: var(--accent-light);
+	color: var(--accent);
+	font-family: 'Roboto Mono', monospace;
+	font-size: 0.75rem;
+	font-weight: 700;
+	border-radius: 100px;
+	text-transform: uppercase;
+	margin-bottom: 1rem;
+}
+
+[data-theme='dark'] .badge {
+	background: rgba(0, 112, 243, 0.2);
+}
+
+/* Botones Premium */
+.btn-primary {
+	background: var(--text-color);
+	color: var(--bg-color);
+	padding: 1rem 2rem;
+	border-radius: 12px;
+	text-decoration: none;
+	font-family: 'Roboto Mono', monospace;
+	font-weight: 700;
+	transition: all 0.2s;
+	display: inline-block;
+}
+
+.btn-primary:hover {
+	background: var(--accent);
+	color: white;
+	transform: scale(1.02);
+}
+
+/* Power Footer */
+footer {
+	background: var(--footer-bg);
+	border-top: 1px solid var(--border-color);
+	padding: 5rem 2rem 2rem;
+	margin-top: 5rem;
+	color: var(--gray-med);
+}
+
+.footer-grid {
+	max-width: 1020px;
+	margin: 0 auto;
+	display: grid;
+	grid-template-columns: 2fr 1fr 1fr;
+	gap: 4rem;
+}
+
+.footer-brand h2 { margin-top: 0; font-size: 1.5rem; color: var(--text-color); }
+.footer-links h4 { color: var(--text-color); margin-bottom: 1.5rem; font-size: 0.9rem; }
+.footer-links ul { list-style: none; padding: 0; }
+.footer-links li { margin-bottom: 0.8rem; }
+.footer-links a { color: var(--gray-med); text-decoration: none; font-size: 0.9rem; }
+.footer-links a:hover { color: var(--accent); }
+
+.footer-bottom {
+	max-width: 1020px;
+	margin: 4rem auto 0;
+	padding-top: 2rem;
+	border-top: 1px solid var(--border-color);
+	text-align: center;
+	font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+	.footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+	h1 { font-size: 2.2rem; }
+}
+

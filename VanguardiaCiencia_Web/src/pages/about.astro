@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/BlogPost.astro';
+import aboutHero from '../assets/about-hero-science.jpg';
+---
+
+<Layout
+	title="Acerca de Vanguardia Ciencia"
+	description="Tu fuente diaria de los últimos descubrimientos en ciencia, salud, tecnología y medio ambiente."
+	pubDate={new Date('2026-02-28')}
+	heroImage={aboutHero}
+>
+	<p>
+		<strong>Vanguardia Ciencia</strong> presenta noticias de última hora sobre los descubrimientos más recientes en ciencia, salud, medio ambiente, tecnología y más, provenientes de las principales universidades, revistas científicas y organizaciones de investigación del mundo.
+	</p>
+
+	<p>
+		Nuestros visitantes pueden explorar una amplia variedad de temas individuales, agrupados en secciones principales que cubren: ciencias médicas y salud; ciencias físicas y tecnología; ciencias biológicas y medio ambiente; y ciencias sociales y educación. Proporcionamos titulares y resúmenes de noticias relevantes en cada página temática, garantizando una cobertura exhaustiva y actualizada.
+	</p>
+
+	<p>
+		Las historias se publican diariamente, seleccionadas meticulosamente a partir de materiales de prensa proporcionados por cientos de fuentes de todo el mundo. Incluimos enlaces a las fuentes originales y citas de revistas académicas relevantes (cuando están disponibles) al final de cada publicación, asegurando la trazabilidad y el rigor científico.
+	</p>
+
+	<h3>Contacto y Redacción</h3>
+	<p>
+		Para más información, colaboraciones o consultas de medios, por favor contáctenos en:
+	</p>
+	
+	<address style="font-style: normal; background: var(--section-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid var(--accent); color: var(--text-color); border-right: 1px solid var(--border-color); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+		<strong>Vanguardia Ciencia Editorial</strong><br />
+		Red de Divulgación Científica Independiente<br />
+		Conectando el conocimiento global desde 2026<br /><br />
+		<strong>Redacción de Vanguardia Ciencia</strong><br />
+		<a href="mailto:editorial@vanguardiaciencia.com" style="color: var(--accent);">editorial@vanguardiaciencia.com</a>
+	</address>
+
+	<p style="margin-top: 2rem;">
+		Esperamos que disfrute de Vanguardia Ciencia y que nos convierta en uno de sus sitios web visitados regularmente. Agradecemos todas sus preguntas y comentarios para seguir mejorando la divulgación científica en español.
+	</p>
+</Layout>

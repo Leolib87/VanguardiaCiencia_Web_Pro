@@ -1,0 +1,158 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 1020px;
+				max-width: calc(100% - 2rem);
+				margin: auto;
+			}
+			ul {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 3rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li:first-child {
+				grid-column: 1 / -1;
+			}
+			.blog-card {
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				background: var(--card-bg);
+				border-radius: 24px;
+				border: 1px solid var(--card-border);
+				overflow: hidden;
+				box-shadow: 0 4px 12px var(--card-shadow);
+				transition: all 0.3s ease;
+			}
+			.blog-card:hover {
+				box-shadow: 0 12px 30px var(--card-shadow);
+				border-color: var(--accent);
+			}
+			ul li:first-child .blog-card {
+				flex-direction: row;
+				align-items: stretch;
+				gap: 0;
+			}
+			.image-link {
+				flex: 1;
+				overflow: hidden;
+			}
+			ul li:first-child .image-link {
+				flex: 0 0 50%;
+				height: 450px;
+			}
+			.blog-card img {
+				width: 100%;
+				height: 280px;
+				object-fit: cover;
+				transition: transform 0.5s ease;
+			}
+			ul li:first-child img {
+				height: 100%;
+			}
+			.blog-card:hover img {
+				transform: scale(1.05);
+			}
+			.content {
+				flex: 1;
+				padding: 2rem;
+			}
+			.meta-tags {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.read-tag {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: var(--gray-med);
+				background: var(--gray-light);
+				padding: 0.25rem 0.75rem;
+				border-radius: 100px;
+			}
+			.badge {
+				margin-bottom: 0 !important;
+			}
+			.title {
+				font-size: 1.5rem;
+				margin: 0.5rem 0 1rem 0;
+				color: var(--text-color);
+				text-decoration: none;
+				display: block;
+				font-family: 'Roboto Mono', monospace;
+				font-weight: 700;
+			}
+			ul li:first-child .title {
+				font-size: 2.2rem;
+			}
+			.description {
+				font-size: 0.95rem;
+				color: var(--gray-med);
+				line-height: 1.7;
+				margin-top: 1rem;
+				text-align: justify;
+				text-justify: inter-word;
+				hyphens: none;
+			}
+			@media (max-width: 850px) {
+				ul { grid-template-columns: 1fr; }
+				ul li:first-child .blog-card { flex-direction: column; }
+				ul li:first-child .image-link { flex: none; height: 250px; width: 100%; }
+				ul li:first-child .title { font-size: 1.8rem; }
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<ul>
+				{
+					posts.map((post) => (
+						<li>
+							<div class="blog-card">
+								<a href={`/blog/${post.id}/`} class="image-link">
+									<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt="" />
+								</a>
+								<div class="content">
+									<div class="meta-tags">
+										<span class="badge">{post.data.category}</span>
+										<span class="read-tag">⏱️ 3 MIN</span>
+									</div>
+									<p class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+									<a href={`/blog/${post.id}/`} class="title">
+										<h4>{post.data.title}</h4>
+									</a>
+									<p class="description">{post.data.description}</p>
+								</div>
+							</div>
+						</li>
+					))
+				}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>

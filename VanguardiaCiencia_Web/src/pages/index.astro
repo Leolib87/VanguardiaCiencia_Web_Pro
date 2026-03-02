@@ -1,0 +1,187 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+import AdBanner from '../components/AdBanner.astro';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const featuredPost = posts[0];
+const recentPosts = posts.slice(1);
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 1020px;
+				max-width: calc(100% - 2rem);
+				margin: auto;
+				padding: 3em 1rem;
+			}
+			.hero-section {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 3rem;
+				align-items: center;
+				margin-bottom: 5rem;
+				padding: 3rem;
+				background: var(--section-bg);
+				border-radius: 24px;
+				border: 1px solid var(--card-border);
+			}
+			.hero-content h1 {
+				font-size: 3rem;
+				margin: 0 0 1.5rem 0;
+				font-family: 'Roboto Mono', monospace;
+				color: var(--text-color);
+			}
+			.hero-image img {
+				width: 100%;
+				height: 400px;
+				object-fit: cover;
+				border-radius: 16px;
+				box-shadow: 0 20px 40px var(--card-shadow);
+			}
+			.section-title {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 1rem;
+				text-transform: uppercase;
+				color: var(--accent);
+				border-bottom: 2px solid var(--accent);
+				display: inline-block;
+				margin-bottom: 2rem;
+				letter-spacing: 0.1em;
+			}
+			.recent-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+				gap: 2.5rem;
+			}
+			.recent-card {
+				text-decoration: none;
+				color: inherit;
+				transition: transform 0.3s ease;
+				background: var(--card-bg);
+				padding: 1.5rem;
+				border-radius: 20px;
+				border: 1px solid var(--card-border);
+				box-shadow: 0 4px 12px var(--card-shadow);
+			}
+			.recent-card:hover {
+				transform: translateY(-5px);
+				border-color: var(--accent);
+				box-shadow: 0 12px 24px var(--card-shadow);
+			}
+			.recent-card img {
+				width: 100%;
+				height: 220px;
+				object-fit: cover;
+				border-radius: 12px;
+				margin-bottom: 1.5rem;
+				border: 1px solid var(--border-color);
+			}
+			.recent-card h3 {
+				font-size: 1.4rem;
+				margin: 0.5rem 0;
+				font-family: 'Roboto Mono', monospace;
+				color: var(--text-color);
+			}
+			.meta-tags {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.read-tag {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: var(--gray-med);
+				background: var(--gray-light);
+				padding: 0.25rem 0.75rem;
+				border-radius: 100px;
+			}
+			.meta-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 0.5rem;
+			}
+			.read-tag-small {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.7rem;
+				color: var(--gray-med);
+			}
+			.badge { margin-bottom: 0 !important; }
+			.btn-primary {
+				display: inline-block;
+				background: var(--accent);
+				color: white;
+				padding: 0.8rem 1.6rem;
+				border-radius: 8px;
+				text-decoration: none;
+				font-weight: 600;
+				margin-top: 1rem;
+				transition: background 0.2s;
+			}
+			.btn-primary:hover {
+				background: var(--accent-dark);
+				color: white;
+			}
+			@media (max-width: 800px) {
+				.hero-section { grid-template-columns: 1fr; gap: 2rem; padding: 2rem; }
+				.hero-content h1 { font-size: 2.2rem; }
+				.hero-image img { height: 250px; }
+			}
+		</style>
+	</head>
+	<body>
+		<Header title={SITE_TITLE} />
+		<main>
+			<section class="hero-section">
+				<div class="hero-content">
+					<span class="section-title">Lo más reciente</span>
+					<div class="meta-tags">
+						<span class="badge">{featuredPost.data.category}</span>
+						<span class="read-tag">⏱️ 3 MIN</span>
+					</div>
+					<h1>Descubre la frontera de la ciencia</h1>
+					<p>{SITE_DESCRIPTION}</p>
+					<a href={`/blog/${featuredPost.id}/`} class="btn-primary">
+						Leer investigación completa →
+					</a>
+				</div>
+				<div class="hero-image">
+					<img src={typeof featuredPost.data.heroImage === 'string' ? featuredPost.data.heroImage : featuredPost.data.heroImage?.src} alt={featuredPost.data.title} />
+				</div>
+			</section>
+
+			<AdBanner slot="home-middle" />
+
+			<section>
+				<span class="section-title">Vanguardia 2026</span>
+				<div class="recent-grid">
+					{recentPosts.map((post) => (
+						<a href={`/blog/${post.id}/`} class="recent-card">
+							<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt={post.data.title} />
+							<div class="meta-row">
+								<span class="badge">{post.data.category}</span>
+								<span class="read-tag-small">⏱️ 3 MIN</span>
+							</div>
+							<p class="date"><FormattedDate date={post.data.pubDate} /></p>
+							<h3>{post.data.title}</h3>
+						</a>
+					))}
+				</div>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
