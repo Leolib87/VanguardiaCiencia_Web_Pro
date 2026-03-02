@@ -3,7 +3,7 @@ title: "Agentes de IA: 'Aeroplanos para la mente' y la nueva era de la tripulaci
 description: "Análisis del despliegue de SciSciGPT y la transición de la IA como herramienta aislada a sistemas multi-agente que actúan como una tripulación técnica bajo el mando del investigador."
 pubDate: "2026-03-02"
 category: "Inteligencia Artificial"
-heroImage: "../../assets/ai-agents-science.jpg"
+heroImage: "../../assets/ai-agents-freepik.jpg"
 author: "Vanguardia Ciencia"
 tags: ["Ciencia", "Inteligencia Artificial", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
