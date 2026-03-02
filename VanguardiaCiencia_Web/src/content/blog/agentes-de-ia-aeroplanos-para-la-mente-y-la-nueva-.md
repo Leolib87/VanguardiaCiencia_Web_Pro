@@ -2,10 +2,10 @@
 title: "Agentes de IA: 'Aeroplanos para la mente' y la nueva era de la tripulación científica"
 description: "Análisis del despliegue de SciSciGPT y la transición de la IA como herramienta aislada a sistemas multi-agente que actúan como una tripulación técnica bajo el mando del investigador."
 pubDate: "2026-03-02"
-category: "Inteligencia Artificial y Metodología Científica"
-heroImage: "../../assets/agentes-de-ia-aeroplanos-para-la-mente-y-la-nueva--hero.jpg"
-author: "Vanguardia IA"
-tags: ["Ciencia", "Inteligencia Artificial y Metodología Científica", "Innovación"]
+category: "Inteligencia Artificial"
+heroImage: "../../assets/ai-agents-science.jpg"
+author: "Vanguardia Ciencia"
+tags: ["Ciencia", "Inteligencia Artificial", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 
@@ -36,5 +36,6 @@ La arquitectura se basa en un sistema de orquestación jerárquica:
 ### Conclusión Editorial
 La IA en la ciencia no es un piloto automático, sino un ecosistema de agentes que requieren una supervisión experta para evitar la propagación de sesgos o errores a gran escala. La responsabilidad final de la 'aeronave científica' sigue siendo, y debe ser, humana.
 
----
-**Fuente:** [Nature](https://www.nature.com/articles/d41586-026-00665-y)
+***
+
+**Fuente:** *Nature Briefing (2026). "AI agents are aeroplanes for the mind — five ways to make them scientific crew".*
