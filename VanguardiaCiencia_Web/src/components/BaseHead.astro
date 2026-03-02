@@ -48,13 +48,8 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta name="description" content={description} />
 
 <script is:inline>
-	// Bloqueo de tema: ejecutar antes de que el DOM cargue
-	const theme = (() => {
-		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-			return localStorage.getItem('theme');
-		}
-		return 'light';
-	})();
+	// Bloqueo de tema: ejecutar antes de que el DOM cargue para evitar parpadeos
+	const theme = localStorage.getItem('theme') || 'light';
 	document.documentElement.setAttribute('data-theme', theme);
 </script>
 

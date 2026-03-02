@@ -7,10 +7,16 @@ import Search from './Search.astro';
 
 <header>
 	<nav>
-		<div class="logo">
-			<a href="/">{SITE_TITLE}</a>
+		<div class="top-nav">
+			<div class="logo">
+				<a href="/">{SITE_TITLE}</a>
+			</div>
+			<div class="nav-actions">
+				<Search />
+				<ThemeToggle />
+			</div>
 		</div>
-		<div class="nav-wrapper">
+		<div class="bottom-nav">
 			<div class="internal-links">
 				<HeaderLink href="/">Inicio</HeaderLink>
 				<HeaderLink href="/blog">Ciencia</HeaderLink>
@@ -18,10 +24,6 @@ import Search from './Search.astro';
 				<HeaderLink href="/blog?category=Tecnologia">Tecnología</HeaderLink>
 				<HeaderLink href="/blog?category=Ambiente">Ambiente</HeaderLink>
 				<HeaderLink href="/about">Acerca de</HeaderLink>
-			</div>
-			<div class="nav-actions">
-				<Search />
-				<ThemeToggle />
 			</div>
 		</div>
 	</nav>
@@ -40,36 +42,51 @@ import Search from './Search.astro';
 	}
 	
 	nav {
-		max-width: 1440px;
+		max-width: 1200px;
 		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	.top-nav {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 2rem;
-		height: 80px;
+		height: 70px;
+		border-bottom: 1px solid transparent;
 	}
 
 	.logo a {
 		font-family: 'Roboto Mono', monospace;
 		font-weight: 700;
-		font-size: 1.4rem;
+		font-size: 1.5rem;
 		text-decoration: none;
 		color: var(--text-color);
 		letter-spacing: -0.02em;
-		white-space: nowrap;
 	}
 
-	.nav-wrapper {
+	.nav-actions {
 		display: flex;
 		align-items: center;
-		gap: 2rem;
-		flex: 1;
-		justify-content: flex-end;
+		gap: 0.5rem;
+	}
+
+	.bottom-nav {
+		display: flex;
+		justify-content: center;
+		padding-bottom: 0.5rem;
 	}
 
 	.internal-links {
 		display: flex;
 		gap: 0.5rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		padding: 0.5rem 0;
+	}
+
+	.internal-links::-webkit-scrollbar {
+		display: none;
 	}
 
 	.internal-links a {
@@ -79,9 +96,10 @@ import Search from './Search.astro';
 		text-transform: uppercase;
 		text-decoration: none;
 		color: var(--gray-med);
-		padding: 0.6rem 1rem;
-		border-radius: 8px;
+		padding: 0.5rem 1rem;
+		border-radius: 100px;
 		transition: all 0.2s ease;
+		white-space: nowrap;
 	}
 
 	.internal-links a:hover, .internal-links a.active {
@@ -89,40 +107,22 @@ import Search from './Search.astro';
 		background: var(--accent-light);
 	}
 
-	.nav-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding-left: 1rem;
-		border-left: 1px solid var(--border-color);
-	}
-
-	@media (max-width: 1100px) {
-		nav {
-			flex-direction: column;
-			height: auto;
-			padding: 1rem;
+	@media (max-width: 768px) {
+		.top-nav {
+			height: 60px;
 		}
-		.nav-wrapper {
-			width: 100%;
-			flex-direction: column;
-			gap: 1rem;
-			align-items: center;
+		.logo a {
+			font-size: 1.2rem;
+		}
+		.bottom-nav {
+			justify-content: flex-start;
 		}
 		.internal-links {
 			width: 100%;
-			overflow-x: auto;
-			padding-bottom: 0.5rem;
-			justify-content: flex-start;
-			scrollbar-width: none;
 		}
-		.internal-links::-webkit-scrollbar { display: none; }
-		.nav-actions {
-			border-left: none;
-			border-top: 1px solid var(--border-color);
-			width: 100%;
-			justify-content: center;
-			padding: 0.5rem 0 0 0;
+		.internal-links a {
+			font-size: 0.75rem;
+			padding: 0.4rem 0.8rem;
 		}
 	}
 </style>
