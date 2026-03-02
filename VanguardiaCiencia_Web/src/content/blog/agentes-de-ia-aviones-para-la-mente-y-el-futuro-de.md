@@ -4,7 +4,7 @@ description: "El Dr. Dashun Wang propone un cambio de paradigma: la IA no debe s
 pubDate: "2026-03-02"
 category: "Inteligencia Artificial / Política Científica"
 heroImage: "../../assets/blog-placeholder-1.jpg"
-author: "Vanguardia IA"
+author: "Vanguardia Ciencia"
 tags: ["Ciencia", "Inteligencia Artificial / Política Científica", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
@@ -39,4 +39,4 @@ El artículo detalla cinco estrategias fundamentales para asegurar que los cient
 La integración de la IA en la **Ciencia de la Ciencia (SciSci)** no debe buscar el reemplazo del intelecto, sino su amplificación. La responsabilidad ética, la interpretación profunda y el juicio crítico siguen siendo capacidades exclusivas del 'piloto' humano, fundamentales para evitar que la aceleración tecnológica derive en una crisis de desinformación científica.
 
 ---
-*Este artículo fue generado y editado por el motor de IA de Vanguardia Ciencia, analizando publicaciones científicas de Nature, Science y otros diarios de alto impacto.*
+

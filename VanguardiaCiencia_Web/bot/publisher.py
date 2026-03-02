@@ -165,10 +165,11 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "publish_now":
         item = context.user_data.get('last_news')
+        url = context.user_data.get('last_url')
         if not item: return
         await query.edit_message_text("🚀 Subiendo a la web...")
         try:
-            create_scientific_post(item['title'], item['description'], item['content'], item['category'], item.get('image_prompt'))
+            create_scientific_post(item['title'], item['description'], item['content'], item['category'], item.get('image_prompt'), source_url=url)
             push_to_github()
             if 'last_file' in context.user_data and os.path.exists(context.user_data['last_file']):
                 os.remove(context.user_data['last_file'])

@@ -56,12 +56,20 @@ def generate_image_freepik(prompt, slug):
     
     return "../../assets/blog-placeholder-1.jpg"
 
-def create_scientific_post(title, description, content, category, image_prompt=None):
+def create_scientific_post(title, description, content, category, image_prompt=None, source_url=None):
     """Crea un nuevo artículo en formato Astro con SEO y Estilo Pro."""
     slug = title.lower().replace(" ", "-").replace(":", "").replace("'", "").replace('"', "")[:50]
     filename = f"{slug}.md"
     filepath = CONTENT_DIR / filename
     
+    # Determinar la fuente de forma elegante
+    source_name = "Fuente Externa"
+    if source_url:
+        if "nature.com" in source_url: source_name = "Nature"
+        elif "sciencedaily.com" in source_url: source_name = "ScienceDaily"
+        elif "sciencenews.org" in source_url: source_name = "ScienceNews"
+        elif "sciencemag.org" in source_url or "science.org" in source_url: source_name = "Science"
+
     # Generar o asignar imagen
     if image_prompt:
         hero_image = generate_image_freepik(image_prompt, slug)
@@ -69,6 +77,8 @@ def create_scientific_post(title, description, content, category, image_prompt=N
         hero_image = "../../assets/blog-placeholder-1.jpg"
 
     # Plantilla del Artículo (Optimizado para Astro v4 y SEO)
+    source_footer = f"\n---\n**Fuente:** [{source_name}]({source_url})" if source_url else ""
+    
     template = f"""---
 title: "{title}"
 description: "{description}"
@@ -86,9 +96,7 @@ layout: "../../layouts/BlogPost.astro"
 ---
 
 {content}
-
----
-*Este artículo fue generado y editado por el motor de IA de Vanguardia Ciencia, analizando publicaciones científicas de Nature, Science y otros diarios de alto impacto.*
+{source_footer}
 """
     
     with open(filepath, "w", encoding="utf-8") as f:
