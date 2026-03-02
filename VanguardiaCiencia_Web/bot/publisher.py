@@ -33,14 +33,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 async def process_with_gemini(url):
-    """Procesamiento profundo filtrando solo los mensajes del asistente."""
+    """Procesamiento profundo obligando a la navegación real."""
     instruction = (
-        "Actúa como el Editor Jefe de Vanguardia Ciencia. Analiza el link y genera un JSON profesional en español: "
+        "Actúa como el Editor Jefe de Vanguardia Ciencia. ES OBLIGATORIO que navegues a la URL proporcionada "
+        "y leas el artículo completo. No te bases solo en el título. Extrae datos técnicos, nombres de investigadores "
+        "o instituciones. Luego, genera un JSON profesional en español: "
         "{'title', 'category', 'description', 'content', 'image_prompt'}. "
         "Usa Markdown técnico para el contenido."
     )
     try:
-        command = f'gemini -y -p "{instruction} Link: {url}" -o stream-json'
+        command = f'gemini -y -p "{instruction} URL a investigar: {url}" -o stream-json'
         process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         
         full_response = ""
