@@ -51,43 +51,48 @@ const relatedPosts = allPosts
 		<style>
 			main {
 				width: 100%;
-				max-width: 1200px;
+				max-width: 1400px; /* Web más ancha */
 				margin: auto;
-				padding: 2rem 1rem;
+				padding: 2rem 2rem;
 			}
 			.hero-image {
 				width: 100%;
-				margin-bottom: 3rem;
+				max-width: 1100px; /* Imagen más imponente */
+				margin: 0 auto 3rem auto;
 			}
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
-				border-radius: 20px;
-				box-shadow: 0 20px 40px var(--card-shadow);
+				border-radius: 24px;
+				box-shadow: 0 25px 50px var(--card-shadow);
 				width: 100%;
 				height: auto;
-				max-height: 650px;
+				max-height: 700px;
 				object-fit: cover;
 			}
 			@media (max-width: 768px) {
-				.hero-image img {
-					max-height: 350px;
-					border-radius: 0;
+				main {
+					padding: 1rem;
 				}
-				.hero-image {
-					margin-left: -1rem;
-					margin-right: -1rem;
-					width: calc(100% + 2rem);
+				.hero-image img {
+					max-height: 400px;
+					border-radius: 12px;
 				}
 			}
 			.prose {
-				width: 900px;
+				width: 1000px; /* Cuerpo de lectura más ancho */
 				max-width: 100%;
 				margin: auto;
 				color: var(--text-color);
 				text-align: justify;
 				text-justify: inter-word;
+				hyphens: none; /* Sin cortes de palabras */
+				line-height: 1.8; /* Mejor legibilidad */
+			}
+			.prose h1, .prose h2, .prose h3 {
+				text-align: left; /* Títulos ordenados a la izquierda */
 				hyphens: none;
+				word-break: keep-all;
 			}
 			@media (max-width: 900px) {
 				.prose {
