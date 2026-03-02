@@ -3,7 +3,7 @@ title: 'Inmuno-Cócteles Sintéticos: El Fin de las Vacunas Específicas'
 description: 'Análisis profundo sobre el avance de febrero 2026 en inmunidad innata programable mediante bacteriófagos de IA.'
 category: 'Medicina'
 pubDate: "2026-02-20"
-heroImage: 'https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&q=80&w=1200'
+heroImage: "../../assets/blog-placeholder-1.jpg"
 ---
 
 # La Revolución de la Inmunidad Programable: Más allá del ARNm

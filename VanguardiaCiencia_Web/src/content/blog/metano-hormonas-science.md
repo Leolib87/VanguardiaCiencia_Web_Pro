@@ -3,7 +3,7 @@ title: "Magia Química con Luz LED: Convierten Metano en Hormonas (Science, Feb 
 description: "Investigadores del CiQUS logran una hazaña de alquimia moderna: transformar el metano en bloques químicos complejos como el dimestrol utilizando solo luz LED y catalizadores de hierro."
 category: "Tecnología"
 pubDate: "2026-02-27"
-heroImage: "../../assets/blog-placeholder-4.jpg"
+heroImage: "../../assets/blog-placeholder-1.jpg"
 ---
 
 Un equipo internacional de investigadores, liderado por el centro CiQUS, ha publicado en *Science Advances* el 27 de febrero de 2026 un avance que podría cambiar las reglas del juego en la industria química y ambiental. Han logrado transformar el **metano**, un potente gas de efecto invernadero, en productos químicos de alto valor añadido, incluyendo fármacos hormonales.

@@ -10,9 +10,7 @@
 		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
 			return localStorage.getItem('theme');
 		}
-		if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-			return 'dark';
-		}
+		// Eliminamos la detección de prefiere-color-scheme: dark para forzar light por defecto
 		return 'light';
 	})();
 

@@ -66,9 +66,17 @@ body {
 
 main {
 	width: 1280px;
-	max-width: calc(100% - 3rem);
+	max-width: 100%;
 	margin: auto;
 	padding: 4rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+	main {
+		padding: 2rem 1rem;
+	}
+	h1 { font-size: 2.2rem !important; margin-bottom: 1.5rem !important; }
+	h2 { font-size: 1.8rem !important; }
 }
 
 /* Tipografía Editorial para Artículos */
@@ -77,6 +85,13 @@ main {
 	font-size: 22px;
 	line-height: 1.8;
 	color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+	.prose {
+		font-size: 18px;
+		line-height: 1.6;
+	}
 }
 
 h1, h2, h3, h4, h5, h6 {
