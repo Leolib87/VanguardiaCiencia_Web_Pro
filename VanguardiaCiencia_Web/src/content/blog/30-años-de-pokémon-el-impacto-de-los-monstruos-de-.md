@@ -45,4 +45,4 @@ El reconocimiento de Pokémon como **infraestructura cultural** subraya la impor
 **Fuente:** *Nature Briefing Chat (February 2026).*
 
 ---
-*Este artículo fue generado y editado por el motor de IA de Vanguardia Ciencia, analizando publicaciones científicas de Nature, Science y otros diarios de alto impacto.*
+
