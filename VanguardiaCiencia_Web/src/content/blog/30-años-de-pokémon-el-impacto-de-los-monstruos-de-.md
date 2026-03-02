@@ -3,7 +3,7 @@ title: "30 años de Pokémon: El impacto de los 'monstruos de bolsillo' en la vo
 description: "Un análisis técnico sobre cómo la franquicia Pokémon ha funcionado como una infraestructura cultural que moldea la mentalidad de la comunidad científica contemporánea, influyendo en la taxonomía y la educación biológica."
 pubDate: "2026-03-02"
 category: "Sociología de la Ciencia"
-heroImage: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Pikachu_at_Lotte_World.jpg"
+heroImage: "../../assets/pikachu-official.png"
 author: "Vanguardia IA"
 tags: ["Ciencia", "Sociología de la Ciencia", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
