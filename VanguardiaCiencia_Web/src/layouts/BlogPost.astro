@@ -177,6 +177,36 @@ const relatedPosts = allPosts
 				line-height: 1.4;
 				margin: 0;
 			}
+			.trending-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+			.trending-item {
+				text-decoration: none;
+				color: inherit;
+				display: block;
+			}
+			.trending-item:hover h5 {
+				color: var(--accent);
+			}
+			.trend-cat {
+				font-size: 0.65rem;
+				font-weight: 700;
+				color: var(--accent);
+				text-transform: uppercase;
+				display: block;
+				margin-bottom: 0.2rem;
+			}
+			.trending-item h5 {
+				font-size: 0.9rem;
+				margin: 0;
+				line-height: 1.3;
+				color: var(--text-color);
+			}
+			.article-container {
+				overflow: hidden;
+			}
 		</style>
 	</head>
 
@@ -185,56 +215,78 @@ const relatedPosts = allPosts
 		<Header />
 		<ShareButtons />
 		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt={title} />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="verified-badge">
-							<span class="material-symbols-outlined">verified</span>
-							Fuente Verificada: Nature / Science Index
-						</div>
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							<span class="reading-time">⏱️ 3 min de lectura</span>
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
+			<div class="article-container">
+				<article>
+					<div class="hero-image">
+						{heroImage && <Image width={1020} height={510} src={heroImage} alt={title} />}
 					</div>
-					<AdBanner slot="blog-top" />
-					<slot />
-					
-					<NewsletterBox />
-
-					<CitationBox title={title} pubDate={pubDate} url={currentUrl} />
-
-					<div class="related-section">
-						<h3>Sigue Explorando la Vanguardia</h3>
-						<div class="related-grid">
-							{relatedPosts.map((post) => (
-								<a href={`/blog/${post.id}/`} class="related-card">
-									<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt="" />
-									<div class="related-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-										<span class="badge" style="margin-bottom: 0; font-size: 0.6rem; padding: 0.1rem 0.5rem;">{post.data.category}</span>
-										<span style="font-family: 'Roboto Mono', monospace; font-size: 0.65rem; color: #888;">⏱️ 3 MIN</span>
-									</div>
-									<h4>{post.data.title}</h4>
-								</a>
-							))}
+					<div class="prose">
+						<div class="title">
+							<div class="verified-badge">
+								<span class="material-symbols-outlined">verified</span>
+								Fuente Verificada: Nature / Science Index
+							</div>
+							<div class="date">
+								<FormattedDate date={pubDate} />
+								<span class="reading-time">⏱️ 3 min de lectura</span>
+								{
+									updatedDate && (
+										<div class="last-updated-on">
+											Last updated on <FormattedDate date={updatedDate} />
+										</div>
+									)
+								}
+							</div>
+							<h1>{title}</h1>
+							<hr />
 						</div>
-					</div>
+						<AdBanner slot="blog-top" />
+						<slot />
+						
+						<NewsletterBox />
 
-					<AdBanner slot="blog-bottom" />
+						<CitationBox title={title} pubDate={pubDate} url={currentUrl} />
+
+						<div class="related-section">
+							<h3>Sigue Explorando la Vanguardia</h3>
+							<div class="related-grid">
+								{relatedPosts.map((post) => (
+									<a href={`/blog/${post.id}/`} class="related-card">
+										<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt="" />
+										<div class="related-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+											<span class="badge" style="margin-bottom: 0; font-size: 0.6rem; padding: 0.1rem 0.5rem;">{post.data.category}</span>
+											<span style="font-family: 'Roboto Mono', monospace; font-size: 0.65rem; color: #888;">⏱️ 3 MIN</span>
+										</div>
+										<h4>{post.data.title}</h4>
+									</a>
+								))}
+							</div>
+						</div>
+
+						<AdBanner slot="blog-bottom" />
+					</div>
+				</article>
+			</div>
+
+			<aside class="sidebar">
+				<div class="sidebar-widget">
+					<h4>Tendencia 2026</h4>
+					<div class="trending-list">
+						{allPosts.slice(0, 4).map(post => (
+							<a href={`/blog/${post.id}/`} class="trending-item">
+								<span class="trend-cat">{post.data.category}</span>
+								<h5>{post.data.title}</h5>
+							</a>
+						))}
+					</div>
 				</div>
-			</article>
+				<div class="sidebar-widget">
+					<h4>Comunidad</h4>
+					<p style="font-size: 0.85rem; color: var(--gray-med); margin-bottom: 1rem;">Únete a nuestro canal de WhatsApp para no perderte ningún paper importante.</p>
+					<a href="#" class="btn-primary" style="width: 100%; text-align: center; font-size: 0.8rem; padding: 0.6rem;">Unirse al Canal 🟢</a>
+				</div>
+				<AdBanner slot="sidebar-ad" format="rectangle" />
+			</aside>
 		</main>
 		<div class="sticky-footer-ad">
 			<AdBanner slot="mobile-sticky" format="horizontal" />

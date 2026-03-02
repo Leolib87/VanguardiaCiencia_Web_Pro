@@ -76,14 +76,47 @@ main {
 	max-width: 100%;
 	margin: auto;
 	padding: 4rem 2rem;
+	display: grid;
+	grid-template-columns: 1fr 350px; /* Columna principal + Sidebar */
+	gap: 4rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
 	main {
-		padding: 2rem 1rem;
+		grid-template-columns: 1fr;
+		padding: 2rem 1.5rem;
 	}
-	h1 { font-size: 2.2rem !important; margin-bottom: 1.5rem !important; }
-	h2 { font-size: 1.8rem !important; }
+}
+
+.sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 3rem;
+	position: sticky;
+	top: 100px;
+	height: fit-content;
+}
+
+@media (max-width: 1200px) {
+	.sidebar { display: none; } /* Ocultar sidebar en tablets/móviles */
+}
+
+.sidebar-widget {
+	background: var(--card-bg);
+	border: 1px solid var(--card-border);
+	padding: 1.5rem;
+	border-radius: 16px;
+	box-shadow: 0 4px 12px var(--card-shadow);
+}
+
+.sidebar-widget h4 {
+	font-size: 0.9rem;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	margin-bottom: 1.5rem;
+	color: var(--accent);
+	border-bottom: 2px solid var(--accent);
+	display: inline-block;
 }
 
 /* Tipografía Editorial para Artículos */
