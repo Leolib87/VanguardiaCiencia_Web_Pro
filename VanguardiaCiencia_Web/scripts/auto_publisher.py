@@ -65,19 +65,27 @@ def create_scientific_post(title, description, content, category, image_prompt=N
     else:
         hero_image = "../../assets/blog-placeholder-1.jpg"
 
-    # Plantilla del Artículo
+    # Plantilla del Artículo (Optimizado para Astro v4 y SEO)
     template = f"""---
 title: "{title}"
 description: "{description}"
-category: "{category}"
 pubDate: "{datetime.date.today().isoformat()}"
+category: "{category}"
 heroImage: "{hero_image}"
+author: "Vanguardia IA"
+tags: ["Ciencia", "{category}", "Innovación"]
+layout: "../../layouts/BlogPost.astro"
+---
+
+### Resumen Ejecutivo
+{description}
+
 ---
 
 {content}
 
 ---
-*Noticia generada por el Sistema de Automatización de Vanguardia Ciencia basada en fuentes primarias internacionales.*
+*Este artículo fue generado y editado por el motor de IA de Vanguardia Ciencia, analizando publicaciones científicas de Nature, Science y otros diarios de alto impacto.*
 """
     
     with open(filepath, "w", encoding="utf-8") as f:

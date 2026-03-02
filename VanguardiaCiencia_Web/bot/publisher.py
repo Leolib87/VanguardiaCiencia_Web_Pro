@@ -4,152 +4,192 @@ import asyncio
 import logging
 import json
 import re
-import feedparser
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, filters
+import subprocess
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from pathlib import Path
 
-# Importar lógica de publicación
-sys.path.append(str(Path(__file__).parent.parent / "scripts"))
-from auto_publisher import create_scientific_post, push_to_github
+# --- COMPATIBILIDAD WINDOWS ---
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Configuración
 TOKEN = "8530303251:AAFqw7fYLFPWNRC-x1HySlnPI1PpnIFKio8"
 ALLOWED_USER_ID = 7463161678
-RSS_FEEDS = [
-    "https://www.nature.com/nature.rss",
-    "https://www.sciencedaily.com/rss/all.xml",
-    "https://www.sciencenews.org/feed"
-]
-LOG_FILE = Path(__file__).parent.parent / "scripts" / "published_news.log"
+BASE_DIR = Path("C:/Users/leoli/OneDrive/Desktop/VanguardiaCiencia_Web/bot")
+BANDEJA_DIR = BASE_DIR / "bandeja_de_entrada"
+SCRIPTS_DIR = BASE_DIR.parent / "scripts"
+
+sys.path.append(str(SCRIPTS_DIR))
+try:
+    from auto_publisher import create_scientific_post, push_to_github
+except ImportError:
+    logging.error("No se pudo importar auto_publisher.py")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-SYSTEM_INSTRUCTION = (
-    "Actúa como el Editor Jefe de Vanguardia Ciencia. Tu tarea es analizar el contenido de la URL o resumen proporcionado "
-    "y generar una noticia científica profesional en español. "
-    "Debes devolver un JSON con exactamente estos campos: "
-    "'title' (máximo 60 caracteres), 'category' (Salud, Tecnología, Espacio, Ambiente, Geofísica o IA Genómica), "
-    "'description' (resumen SEO de 150 caracteres), 'content' (artículo completo en Markdown con subtítulos H3, "
-    "bien estructurado y técnico), 'image_prompt' (un prompt en inglés detallado para generar una imagen realística "
-    "sobre el tema en Freepik)."
-)
+ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
-pending_posts = {}
-
-def get_published_urls():
-    if not LOG_FILE.exists(): return set()
-    with open(LOG_FILE, "r") as f:
-        return set(line.strip() for f in f if line.strip())
-
-def log_published_url(url):
-    with open(LOG_FILE, "a") as f:
-        f.write(f"{url}\n")
-
-async def process_with_gemini(input_data):
-    """Llama a Gemini CLI para procesar el link o resumen."""
+async def process_with_gemini(url):
+    """Procesamiento profundo filtrando solo los mensajes del asistente."""
+    instruction = (
+        "Actúa como el Editor Jefe de Vanguardia Ciencia. Analiza el link y genera un JSON profesional en español: "
+        "{'title', 'category', 'description', 'content', 'image_prompt'}. "
+        "Usa Markdown técnico para el contenido."
+    )
     try:
-        command = f'gemini -y -p "{SYSTEM_INSTRUCTION} Datos: {input_data}"'
-        process = await asyncio.create_subprocess_shell(
-            command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, _ = await process.communicate()
-        output = stdout.decode('utf-8', errors='ignore').strip()
-        json_match = re.search(r'\{.*\}', output, re.DOTALL)
+        command = f'gemini -y -p "{instruction} Link: {url}" -o stream-json'
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        
+        full_response = ""
+        while True:
+            line = await process.stdout.readline()
+            if not line: break
+            try:
+                line_decoded = line.decode('utf-8', errors='ignore').strip()
+                if not (line_decoded.startswith('{') and line_decoded.endswith('}')): continue
+                
+                data = json.loads(line_decoded)
+                # CRÍTICO: Solo acumular contenido si el rol es 'assistant'
+                if data.get('type') == 'message' and data.get('role') == 'assistant':
+                    chunk = data.get('content', '')
+                    if chunk: full_response += chunk
+            except: continue
+        
+        await process.wait()
+        
+        if not full_response:
+            logging.error("Gemini no generó ninguna respuesta para el asistente.")
+            return None
+
+        # Limpiar y extraer JSON
+        content = ANSI_ESCAPE.sub('', full_response).strip()
+        content = re.sub(r'```json\s*|```\s*', '', content).strip()
+        
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             return json.loads(json_match.group(0))
+        
+        logging.error(f"JSON no válido. Respuesta completa: {content[:200]}...")
         return None
     except Exception as e:
-        logging.error(f"Error con Gemini: {e}")
+        logging.error(f"Error crítico: {e}")
         return None
 
-async def send_preview(context, chat_id, post_data, source_url=None):
-    """Envía la vista previa con botones al usuario."""
-    post_id = str(hash(post_data['title']))
-    pending_posts[post_id] = {'data': post_data, 'url': source_url}
-    
-    preview = (
-        f"🔍 **SUGERENCIA DE VANGUARDIA IA**\n\n"
-        f"📌 **Título:** {post_data.get('title')}\n"
-        f"🗂️ **Categoría:** {post_data.get('category')}\n"
-        f"📝 **Descripción:** {post_data.get('description')}\n\n"
-        f"¿Deseas publicar esta noticia en la web?"
-    )
-    
-    keyboard = [
-        [
-            InlineKeyboardButton("✅ Publicar", callback_query_data=f"pub_{post_id}"),
-            InlineKeyboardButton("🗑️ Descartar", callback_query_data=f"del_{post_id}")
-        ]
-    ]
-    await context.bot.send_message(chat_id=chat_id, text=preview, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
-    url = update.message.text
-    if not url.startswith("http"): return
+    help_text = (
+        "🔬 **VANGUARDIA IA v2.0**\n\n"
+        "1. Usa /radar para buscar novedades.\n"
+        "2. Usa /bandeja para ver las noticias guardadas."
+    )
+    await update.message.reply_text(help_text, parse_mode="Markdown")
 
-    msg = await update.message.reply_text("🔬 Analizando link...")
-    post_data = await process_with_gemini(f"URL: {url}")
-    if post_data:
-        await msg.delete()
-        await send_preview(context, update.effective_chat.id, post_data, url)
+async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    msg = await update.message.reply_text("📡 Ejecutando Radar...")
+    subprocess.run([sys.executable, str(BASE_DIR / "radar.py")])
+    await msg.edit_text("✅ Radar finalizado. Usa /bandeja para ver los resultados.")
+
+async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    files = sorted(list(BANDEJA_DIR.glob("*.json")), key=os.path.getmtime, reverse=True)
+    if not files:
+        await update.message.reply_text("📭 La bandeja está vacía. Usa /radar primero.")
+        return
+
+    text = "📂 **NOTICIAS EN BANDEJA:**\n\n"
+    keyboard = []
+    
+    # Mostrar las últimas 5 noticias de la bandeja
+    for i, f_path in enumerate(files[:5]):
+        try:
+            with open(f_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            idx = str(i + 1)
+            title = data.get('title', 'Sin título').replace('*', '').replace('_', '')
+            text += f"{idx}. 📰 {title[:70]}...\n\n"
+            keyboard.append(InlineKeyboardButton(idx, callback_data=f"proc_{f_path.name}"))
+        except Exception as e:
+            logging.error(f"Error leyendo {f_path.name}: {e}")
+            continue
+
+    if keyboard:
+        await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup([keyboard]), parse_mode="Markdown")
     else:
-        await msg.edit_text("❌ Error al procesar el link.")
+        await update.message.reply_text("❌ No se pudo procesar ninguna noticia de la bandeja (Error de lectura).")
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    action, post_id = query.data.split('_')
-    
-    if post_id not in pending_posts:
-        await query.edit_message_text("Sesión expirada o noticia ya procesada.")
-        return
+    # Usamos split con límite 1 para que el nombre del archivo se mantenga íntegro
+    data_parts = query.data.split('_', 1)
+    action = data_parts[0]
+    filename = data_parts[1] if len(data_parts) > 1 else ""
 
-    if action == "pub":
-        item = pending_posts[post_id]
-        await query.edit_message_text("🚀 Publicando...")
+    if action == "proc":
+        f_path = BANDEJA_DIR / filename
+        if not f_path.exists():
+            await query.edit_message_text("❌ Archivo no encontrado.")
+            return
+        
+        with open(f_path, "r", encoding="utf-8") as f:
+            news_data = json.load(f)
+        
+        await query.edit_message_text(f"🧠 Analizando con Gemini: {news_data['title'][:40]}...\n(Espera unos 40s)")
+        
+        result = await process_with_gemini(news_data['link'])
+        if result:
+            context.user_data['last_news'] = result
+            context.user_data['last_url'] = news_data['link']
+            context.user_data['last_file'] = f_path
+            
+            preview = (
+                f"📝 **VISTA PREVIA**\n\n"
+                f"📌 **{result.get('title', 'Sin título')}**\n\n"
+                f"{result.get('content', 'Sin contenido')[:400]}...\n\n"
+                f"¿Publicar en la web?"
+            )
+            btns = [[InlineKeyboardButton("✅ Publicar", callback_data="publish_now"),
+                     InlineKeyboardButton("🗑️ Borrar", callback_data=f"delete_{filename}")]]
+            await query.edit_message_text(preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
+        else:
+            await query.edit_message_text("❌ Error al procesar con IA.")
+
+    elif query.data == "publish_now":
+        item = context.user_data.get('last_news')
+        if not item: return
+        await query.edit_message_text("🚀 Subiendo a la web...")
         try:
-            create_scientific_post(item['data']['title'], item['data']['description'], item['data']['content'], item['data']['category'], item['data'].get('image_prompt'))
-            if item['url']: log_published_url(item['url'])
+            create_scientific_post(item['title'], item['description'], item['content'], item['category'], item.get('image_prompt'))
             push_to_github()
-            await query.edit_message_text(f"✨ **¡PUBLICADO!**\n'{item['data']['title']}' ya está en la web.")
+            if 'last_file' in context.user_data and os.path.exists(context.user_data['last_file']):
+                os.remove(context.user_data['last_file'])
+            await query.edit_message_text(f"✨ **¡PUBLICADO!**\nLa noticia ya está en Vercel.")
         except Exception as e:
             await query.edit_message_text(f"❌ Error: {e}")
-    else:
-        await query.edit_message_text("🗑️ Noticia descartada.")
-    
-    del pending_posts[post_id]
 
-async def surveillance_task(context: ContextTypes.DEFAULT_TYPE):
-    """Tarea que revisa RSS cada 4 horas."""
-    print("🕵️ Ejecutando ronda de vigilancia...")
-    published = get_published_urls()
-    
-    for feed_url in RSS_FEEDS:
-        feed = feedparser.parse(feed_url)
-        for entry in feed.entries[:2]:
-            if entry.link not in published:
-                print(f"💡 Nueva sugerencia: {entry.title}")
-                data = await process_with_gemini(f"RSS Entry - Título: {entry.title}. Resumen: {entry.summary}")
-                if data:
-                    await send_preview(context, ALLOWED_USER_ID, data, entry.link)
-                    # Solo sugerir una por feed para no saturar a Leandro
-                    break
+    elif action == "delete":
+        f_path = BANDEJA_DIR / filename
+        if f_path.exists(): os.remove(f_path)
+        await query.edit_message_text("🗑️ Noticia eliminada.")
+
+async def post_init(application):
+    await application.bot.set_my_commands([
+        BotCommand("start", "Inicio"),
+        BotCommand("radar", "Buscar nuevas noticias"),
+        BotCommand("bandeja", "Ver noticias en espera")
+    ])
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(TOKEN).build()
-    
-    # Manejadores
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("radar", run_radar_cmd))
+    application.add_handler(CommandHandler("bandeja", bandeja))
     application.add_handler(CallbackQueryHandler(button_callback))
-    
-    # Programar vigilancia cada 4 horas (14400 segundos)
-    job_queue = application.job_queue
-    job_queue.run_repeating(surveillance_task, interval=14400, first=10)
-    
-    print("🤖 Bot Vanguardia Editor Activo (Modo Supervisado)")
     application.run_polling()
