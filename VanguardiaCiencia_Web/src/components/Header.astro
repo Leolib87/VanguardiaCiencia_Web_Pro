@@ -3,6 +3,11 @@ import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import Search from './Search.astro';
+import { getCollection } from 'astro:content';
+
+// Obtener todas las categorías únicas dinámicamente
+const allPosts = await getCollection('blog');
+const categories = [...new Set(allPosts.map((post) => post.data.category).filter(Boolean))].sort();
 ---
 
 <header>
@@ -19,10 +24,11 @@ import Search from './Search.astro';
 		<div class="bottom-nav">
 			<div class="internal-links">
 				<HeaderLink href="/">Inicio</HeaderLink>
-				<HeaderLink href="/blog">Ciencia</HeaderLink>
-				<HeaderLink href="/blog?category=Salud">Salud</HeaderLink>
-				<HeaderLink href="/blog?category=Tecnologia">Tecnología</HeaderLink>
-				<HeaderLink href="/blog?category=Ambiente">Ambiente</HeaderLink>
+				{categories.map((category) => (
+					<HeaderLink href={`/blog?category=${encodeURIComponent(category)}`}>
+						{category}
+					</HeaderLink>
+				))}
 				<HeaderLink href="/about">Acerca de</HeaderLink>
 			</div>
 		</div>
