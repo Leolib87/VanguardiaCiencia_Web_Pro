@@ -72,10 +72,10 @@ body {
 }
 
 main {
-	width: 1280px;
+	width: 1440px;
 	max-width: 100%;
 	margin: auto;
-	padding: 4rem 1.5rem;
+	padding: 4rem 2rem;
 }
 
 @media (max-width: 768px) {
@@ -89,14 +89,14 @@ main {
 /* Tipografía Editorial para Artículos */
 .prose {
 	font-family: 'Source Serif 4', serif;
-	font-size: 22px;
+	font-size: 24px;
 	line-height: 1.8;
 	color: var(--text-color);
 }
 
 @media (max-width: 768px) {
 	.prose {
-		font-size: 18px;
+		font-size: 19px;
 		line-height: 1.6;
 	}
 }
@@ -109,8 +109,8 @@ h1, h2, h3, h4, h5, h6 {
 	letter-spacing: -0.02em;
 }
 
-h1 { font-size: 3.8rem; margin-bottom: 2.5rem; }
-h2 { font-size: 2.4rem; margin-top: 3.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+h1 { font-size: 4.5rem; margin-bottom: 3rem; }
+h2 { font-size: 2.8rem; margin-top: 4rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
 
 /* Estilo de Tarjetas Modernas */
 .card {
