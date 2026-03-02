@@ -3,7 +3,7 @@ title: "IA Generativa de Vida: Los Modelos que Diseñan Genomas desde Cero (Feb 
 description: "Descubre cómo la IA de vanguardia está superando a la evolución natural, diseñando genes funcionales y genomas sintéticos completos en segundos."
 category: "IA Genómica"
 pubDate: "2026-02-28"
-heroImage: "../../assets/blog-placeholder-1.jpg"
+heroImage: "../../assets/ia-generativa-genomas-sinteticos-hero.jpg"
 ---
 
 En la última semana de febrero de 2026, la revista *Nature* ha destacado un cambio tectónico en la ciencia: la transición de estudiar la vida a **autorearla**. Utilizando modelos de lenguaje genómico avanzados, los científicos ya no solo editan genes existentes, sino que los diseñan "de novo".

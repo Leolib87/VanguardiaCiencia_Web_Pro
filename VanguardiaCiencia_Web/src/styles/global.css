@@ -64,6 +64,13 @@ body {
 	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+@media (max-width: 768px) {
+	body {
+		background-size: 20px 20px; /* Cuadrícula más pequeña en móvil */
+		font-size: 16px;
+	}
+}
+
 main {
 	width: 1280px;
 	max-width: 100%;

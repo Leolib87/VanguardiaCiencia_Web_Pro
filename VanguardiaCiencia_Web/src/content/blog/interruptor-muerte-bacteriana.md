@@ -3,7 +3,7 @@ title: "El 'Interruptor de la Muerte': El Hallazgo en Nature que Jubilará a los
 description: "Científicos descubren cómo desactivar la proteína MurJ en superbacterias, abriendo la puerta a una nueva generación de fármacos letales contra infecciones resistentes."
 category: "Salud"
 pubDate: "2026-02-28"
-heroImage: "../../assets/blog-placeholder-1.jpg"
+heroImage: "../../assets/interruptor-muerte-bacteriana-hero.jpg"
 ---
 
 Un estudio revolucionario publicado en *Nature* el 28 de febrero de 2026 ha identificado un punto débil crítico en la estructura de las bacterias más resistentes del mundo. Se trata de la proteína **MurJ**, descrita ahora como el "interruptor de la muerte" bacteriana.

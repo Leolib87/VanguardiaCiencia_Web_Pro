@@ -74,6 +74,11 @@ const recentPosts = posts.slice(1);
 				border: 1px solid var(--card-border);
 				box-shadow: 0 4px 12px var(--card-shadow);
 			}
+			@media (max-width: 768px) {
+				.recent-card {
+					padding: 1rem;
+				}
+			}
 			.recent-card:hover {
 				transform: translateY(-5px);
 				border-color: var(--accent);

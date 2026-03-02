@@ -28,14 +28,25 @@ def generate_image_freepik(prompt, slug):
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
             result = response.json()
-            # La API suele devolver una URL temporal o el contenido en base64 según el flujo
-            # Ajustamos según el formato real de respuesta (asumiendo data[0].url)
-            image_url = result.get('data', [{}])[0].get('url')
+            # La API puede devolver una URL o un base64
+            image_data_obj = result.get('data', [{}])[0]
+            image_url = image_data_obj.get('url')
+            image_b64 = image_data_obj.get('base64')
+            
+            image_name = f"{slug}-hero.jpg"
+            save_path = ASSETS_DIR / image_name
+            
             if image_url:
+                print(f"📥 Descargando imagen desde URL...")
                 img_data = requests.get(image_url).content
-                image_name = f"{slug}-hero.jpg"
-                with open(ASSETS_DIR / image_name, 'wb') as handler:
+                with open(save_path, 'wb') as handler:
                     handler.write(img_data)
+                return f"../../assets/{image_name}"
+            elif image_b64:
+                print(f"📦 Guardando imagen desde Base64...")
+                import base64
+                with open(save_path, 'wb') as handler:
+                    handler.write(base64.b64decode(image_b64))
                 return f"../../assets/{image_name}"
     except Exception as e:
         print(f"Error generando imagen: {e}")

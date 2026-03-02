@@ -70,13 +70,19 @@ const relatedPosts = allPosts
 			}
 			.prose {
 				width: 1000px;
-				max-width: calc(100% - 2em);
+				max-width: 100%;
 				margin: auto;
-				padding: 1em;
+				padding: 1rem;
 				color: rgb(var(--gray-dark));
 				text-align: justify;
 				text-justify: inter-word;
 				hyphens: none;
+			}
+			@media (max-width: 1000px) {
+				.prose {
+					width: 100%;
+					padding: 1.5rem;
+				}
 			}
 			.verified-badge {
 				display: inline-flex;

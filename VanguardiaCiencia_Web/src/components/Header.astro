@@ -83,16 +83,37 @@ import Search from './Search.astro';
 		border-bottom: none;
 	}
 
-	@media (max-width: 600px) {
+	@media (max-width: 800px) {
+		nav {
+			flex-direction: column;
+			height: auto;
+			padding: 1rem;
+			gap: 1rem;
+		}
+		.logo {
+			width: 100%;
+			text-align: center;
+		}
 		.internal-links {
+			width: 100%;
+			overflow-x: auto;
+			padding-bottom: 0.5rem;
+			scrollbar-width: none; /* Firefox */
+			-ms-overflow-style: none;  /* IE and Edge */
+			justify-content: flex-start;
 			gap: 0.5rem;
 		}
-		.logo a {
-			font-size: 1rem;
+		.internal-links::-webkit-scrollbar {
+			display: none; /* Chrome, Safari, Opera */
 		}
 		.internal-links a {
+			flex: 0 0 auto;
 			font-size: 0.8rem;
-			padding: 0.4rem;
+			white-space: nowrap;
+		}
+		.nav-actions {
+			width: 100%;
+			justify-content: center;
 		}
 	}
 </style>
