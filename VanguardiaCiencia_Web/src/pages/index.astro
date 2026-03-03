@@ -35,6 +35,18 @@ const categoryClass = (cat) => {
 		.normalize("NFD")
 		.replace(/[\u0300-\u036f]/g, "");
 };
+
+// Helper para Emojis de Fuente
+const sourceEmoji = (source) => {
+	const map = {
+		'Nature': '🔬',
+		'ScienceDaily': '🧪',
+		'ScienceNews': '📰',
+		'Science': '🔭',
+		'Fuente Externa': '🌐'
+	};
+	return map[source] || '📄';
+};
 ---
 
 <!doctype html>
@@ -44,11 +56,9 @@ const categoryClass = (cat) => {
 		<style>
 			main {
 				width: 100%;
-				max-width: 1400px;
-				margin: 0 auto;
-				padding: 2rem 1.5rem;
-				box-sizing: border-box;
-				overflow-x: hidden; /* Seguridad extra */
+				max-width: 1200px;
+				margin: auto;
+				padding: 2rem 1rem;
 			}
 			.hero-section {
 				display: grid;
@@ -61,30 +71,33 @@ const categoryClass = (cat) => {
 				border-radius: 32px;
 				border: 1px solid var(--card-border);
 				box-shadow: 0 10px 30px var(--card-shadow);
-				width: 100%;
-				box-sizing: border-box;
 			}
 			.hero-content h1 {
 				font-size: 3.5rem;
 				margin: 0 0 1.5rem 0;
 				line-height: 1.1;
-				word-break: break-word; /* Evita que el texto empuje la caja */
 			}
 			.hero-image img {
 				width: 100%;
-				max-width: 100%;
-				aspect-ratio: 16 / 9; /* Proporción áurea moderna */
+				height: 500px;
 				object-fit: cover;
 				border-radius: 20px;
 				box-shadow: 0 20px 40px var(--card-shadow);
+			}
+			.section-title {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.9rem;
+				text-transform: uppercase;
+				color: var(--accent);
+				font-weight: 700;
+				letter-spacing: 0.1em;
+				margin-bottom: 2rem;
 				display: block;
 			}
 			.recent-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 				gap: 2.5rem;
-				width: 100%;
-				justify-content: center;
 			}
 			.recent-card {
 				text-decoration: none;
@@ -95,52 +108,63 @@ const categoryClass = (cat) => {
 				border-radius: 24px;
 				border: 1px solid var(--card-border);
 				box-shadow: 0 4px 15px var(--card-shadow);
-				display: flex;
-				flex-direction: column;
-				width: 100%;
-				box-sizing: border-box;
+			}
+			.recent-card:hover {
+				transform: translateY(-8px);
+				border-color: var(--accent);
+				box-shadow: 0 15px 35px var(--card-shadow);
 			}
 			.recent-card img {
 				width: 100%;
-				aspect-ratio: 16 / 9; /* Uniformidad total */
+				height: 220px;
 				object-fit: cover;
 				border-radius: 16px;
 				margin-bottom: 1.5rem;
 			}
+			.recent-card h3 {
+				font-size: 1.5rem;
+				margin: 0.5rem 0;
+				line-height: 1.3;
+			}
+			.meta-tags {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+				margin-bottom: 1.2rem;
+			}
+			.read-tag {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: var(--gray-med);
+				background: var(--gray-light);
+				padding: 0.25rem 0.75rem;
+				border-radius: 100px;
+			}
+			.meta-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 0.8rem;
+			}
+			.read-tag-small {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.7rem;
+				color: var(--gray-med);
+			}
+			.badge { margin-bottom: 0 !important; }
 
 			@media (max-width: 900px) {
-				main {
-					padding: 1.5rem 1rem;
-				}
 				.hero-section {
 					grid-template-columns: 1fr;
-					padding: 2rem 1.2rem;
-					gap: 2.5rem;
-					text-align: center;
-					margin-bottom: 3rem;
-					margin-left: -10px; /* Ajuste solicitado -10px */
-					width: calc(100% + 20px);
+					padding: 2rem;
+					gap: 2rem;
 				}
 				.hero-content h1 {
-					font-size: 2.2rem;
-					text-align: center;
+					font-size: 2.5rem;
 				}
 				.hero-image img {
-					aspect-ratio: 16 / 9; /* Mantiene la estética en móvil */
-				}
-				.recent-grid {
-					grid-template-columns: 1fr;
-					padding: 0;
-					gap: 2rem;
-					margin-left: -10px; /* Ajuste solicitado -10px */
-					width: calc(100% + 20px);
-				}
-				.recent-card {
-					max-width: 100%;
-					margin: 0 auto;
-				}
-				.recent-card img {
-					aspect-ratio: 16 / 9;
+					height: 300px;
 				}
 			}
 		</style>
@@ -152,7 +176,9 @@ const categoryClass = (cat) => {
 				<div class="hero-content">
 					<span class="section-title">En Portada</span>
 					<div class="meta-tags">
-						<span class={`badge ${categoryClass(featuredPost.data.category)}`}>{featuredPost.data.category}</span>
+						<span class={`badge ${categoryClass(featuredPost.data.category)}`}>
+							{sourceEmoji(featuredPost.data.source)} {featuredPost.data.category}
+						</span>
 						<span class="read-tag">⏱️ 3 MIN</span>
 					</div>
 					<h1>{featuredPost.data.title}</h1>
@@ -175,7 +201,9 @@ const categoryClass = (cat) => {
 						<a href={`/blog/${post.id}/`} class="recent-card">
 							<img src={getImageUrl(post.data.heroImage)} alt={post.data.title} />
 							<div class="meta-row">
-								<span class={`badge ${categoryClass(post.data.category)}`}>{post.data.category}</span>
+								<span class={`badge ${categoryClass(post.data.category)}`}>
+									{sourceEmoji(post.data.source)} {post.data.category}
+								</span>
 								<span class="read-tag-small">⏱️ 3 MIN</span>
 							</div>
 							<p style="font-size: 0.85rem; color: var(--gray-med); margin-bottom: 0.5rem;"><FormattedDate date={post.data.pubDate} /></p>
