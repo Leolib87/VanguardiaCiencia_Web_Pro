@@ -31,17 +31,14 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-
-# Mapeo global para evitar errores de longitud en botones de Telegram
 file_map = {}
 
 async def process_with_gemini(url):
-    """Procesamiento profundo con timeout de seguridad de 60 segundos."""
+    """Procesamiento asíncrono con timeout largo para saltar bloqueos de Nature."""
     instruction = (
         "Actúa como el Editor Jefe de Vanguardia Ciencia. ES OBLIGATORIO que navegues a la URL proporcionada "
-        "y leas el artículo completo. Extrae datos técnicos y genera un JSON profesional en español: "
-        "{'title', 'category', 'description', 'content', 'image_prompt'}. "
-        "Usa Markdown técnico para el contenido."
+        "y leas el artículo completo. Si el link falla, busca la noticia en Google para obtener los datos técnicos. "
+        "Genera un JSON profesional en español: {'title', 'category', 'description', 'content', 'image_prompt'}."
     )
     try:
         command = f'gemini -y -p "{instruction} URL: {url}" -o stream-json'
@@ -50,7 +47,8 @@ async def process_with_gemini(url):
         full_response = ""
         try:
             while True:
-                line = await asyncio.wait_for(process.stdout.readline(), timeout=60)
+                # Permitimos hasta 8 minutos de análisis total
+                line = await asyncio.wait_for(process.stdout.readline(), timeout=480)
                 if not line: break
                 try:
                     line_decoded = line.decode('utf-8', errors='ignore').strip()
@@ -64,7 +62,6 @@ async def process_with_gemini(url):
             if process:
                 try: process.kill()
                 except: pass
-            logging.error("TIMEOUT: Gemini tardó más de 60s.")
             return None
         
         await process.wait()
@@ -72,13 +69,11 @@ async def process_with_gemini(url):
         content = re.sub(r'```json\s*|```\s*', '', content).strip()
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         return json.loads(json_match.group(0)) if json_match else None
-    except Exception as e:
-        logging.error(f"Error Crítico Gemini: {e}")
-        return None
+    except: return None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
-    await update.message.reply_text("🔬 **VANGUARDIA IA v2.1 (Protección contra Bloqueos)**\n\n/radar - Buscar nuevas\n/bandeja - Ver pendientes")
+    await update.message.reply_text("🔬 **VANGUARDIA IA v2.2 (Modo Asíncrono)**\n\n/radar - Buscar nuevas\n/bandeja - Ver pendientes")
 
 async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
@@ -88,10 +83,9 @@ async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
-    
     files = sorted(list(BANDEJA_DIR.glob("*.json")), key=os.path.getmtime, reverse=True)
     if not files:
-        await update.message.reply_text("📭 La bandeja está vacía. Usa /radar primero.")
+        await update.message.reply_text("📭 Bandeja vacía. Usa /radar.")
         return
 
     text = f"📂 **BANDEJA EDITORIAL ({len(files)} pendientes):**\n\n"
@@ -103,12 +97,9 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             with open(f_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            
             idx = str(i + 1)
             file_map[idx] = f_path.name
-            title = data.get('title', 'Sin título').replace('*', '').replace('_', '')
-            text += f"{idx}. 📰 {title[:65]}...\n\n"
-            
+            text += f"{idx}. 📰 {data.get('title', 'Sin título')[:65]}...\n\n"
             row.append(InlineKeyboardButton(idx, callback_data=f"p_{idx}"))
             if len(row) == 5:
                 keyboard.append(row)
@@ -117,6 +108,26 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if row: keyboard.append(row)
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+
+async def task_analysis(context, chat_id, url, ref_id, filename):
+    """Tarea en segundo plano para procesar la noticia."""
+    result = await process_with_gemini(url)
+    if result:
+        # Guardar en memoria para publicar
+        post_key = f"post_{ref_id}"
+        context.bot_data[post_key] = {'data': result, 'url': url, 'file': str(BANDEJA_DIR / filename)}
+        
+        preview = (
+            f"✅ **ANÁLISIS COMPLETADO**\n\n"
+            f"📌 **{result.get('title', 'Sin título')}**\n\n"
+            f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
+            f"¿Publicar noticia?"
+        )
+        btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
+                 InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
+        await context.bot.send_message(chat_id=chat_id, text=preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
+    else:
+        await context.bot.send_message(chat_id=chat_id, text=f"❌ El análisis de la noticia {ref_id} falló tras varios intentos.")
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -136,46 +147,31 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(f_path, "r", encoding="utf-8") as f:
             news_data = json.load(f)
         
-        await query.edit_message_text(f"🧠 Analizando (Máx 60s): {news_data['title'][:40]}...")
+        await query.edit_message_text(f"⏳ **Análisis iniciado para la noticia {ref_id}**\n\nNature suele bloquear el acceso directo, por lo que Gemini buscará información alternativa. Te enviaré la propuesta en cuanto esté lista (aprox. 3-5 min).")
         
-        result = await process_with_gemini(news_data['link'])
-        if result:
-            context.user_data['last_news'] = result
-            context.user_data['last_url'] = news_data['link']
-            context.user_data['last_file'] = str(f_path)
-            
-            preview = (
-                f"📝 **VISTA PREVIA**\n\n"
-                f"📌 **{result.get('title', 'Sin título')}**\n\n"
-                f"{result.get('content', 'Sin contenido')[:500]}...\n\n"
-                f"¿Publicar noticia?"
-            )
-            btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data="publish_final"),
-                     InlineKeyboardButton("🗑️ BORRAR", callback_data=f"d_{ref_id}")]]
-            await query.edit_message_text(preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
-        else:
-            await query.edit_message_text("❌ El análisis tardó demasiado o falló. Intenta con otra noticia.")
+        # Lanzamos la tarea en segundo plano
+        asyncio.create_task(task_analysis(context, update.effective_chat.id, news_data['link'], ref_id, filename))
 
-    elif query.data == "publish_final":
-        item = context.user_data.get('last_news')
-        url = context.user_data.get('last_url')
-        file_to_del = context.user_data.get('last_file')
-        if not item: return
+    elif action == "pubfinal":
+        item = context.bot_data.get(f"post_{ref_id}")
+        if not item:
+            await query.edit_message_text("❌ Error: Datos perdidos. Intenta de nuevo.")
+            return
         
         await query.edit_message_text("🚀 Subiendo a la web...")
         try:
-            create_scientific_post(item['title'], item['description'], item['content'], item['category'], item.get('image_prompt'), source_url=url)
+            create_scientific_post(item['data']['title'], item['data']['description'], item['data']['content'], item['data']['category'], item['data'].get('image_prompt'), source_url=item['url'])
             push_to_github()
-            if file_to_del and os.path.exists(file_to_del): os.remove(file_to_del)
-            await query.edit_message_text(f"✨ **¡PUBLICADO!**\nLa noticia ya está en camino a Vercel.")
+            if os.path.exists(item['file']): os.remove(item['file'])
+            await query.edit_message_text(f"✨ **¡PUBLICADO!**\nLa noticia '{item['data']['title']}' ya está en camino a Vercel.")
+            del context.bot_data[f"post_{ref_id}"]
         except Exception as e: await query.edit_message_text(f"❌ Error: {e}")
 
-    elif action == "d":
-        filename = file_map.get(ref_id)
-        if filename:
-            f_path = BANDEJA_DIR / filename
-            if f_path.exists(): os.remove(f_path)
-            await query.edit_message_text("🗑️ Noticia eliminada de la bandeja.")
+    elif action == "del":
+        item = context.bot_data.get(f"post_{ref_id}")
+        if item and os.path.exists(item['file']): os.remove(item['file'])
+        await query.edit_message_text("🗑️ Noticia eliminada de la bandeja.")
+        if f"post_{ref_id}" in context.bot_data: del context.bot_data[f"post_{ref_id}"]
 
 async def post_init(application):
     await application.bot.set_my_commands([
@@ -185,6 +181,7 @@ async def post_init(application):
     ])
 
 if __name__ == '__main__':
+    # Usamos bot_data para persistir noticias analizadas durante la sesión
     application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("radar", run_radar_cmd))
