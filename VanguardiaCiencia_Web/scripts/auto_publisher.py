@@ -64,14 +64,17 @@ def generate_image_freepik(prompt, slug):
 
 def create_scientific_post(title, description, content, category, image_prompt=None, source_url=None):
     """Crea un nuevo artículo en formato Astro con SEO y Estilo Pro."""
-    # Sanitización robusta para Windows: solo letras, números y guiones
+    # Sanitización robusta para Windows
     slug = title.lower()
-    slug = re.sub(r'[^a-z0-9\s-]', '', slug) # Quitar todo lo que no sea letra, número o espacio
-    slug = re.sub(r'[\s]+', '-', slug).strip('-') # Cambiar espacios por guiones
-    slug = slug[:60] # Limitar longitud
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+    slug = re.sub(r'[\s]+', '-', slug).strip('-')
+    slug = slug[:60]
     
     filename = f"{slug}.md"
     filepath = CONTENT_DIR / filename
+    
+    # Fecha con hora para ordenación exacta
+    full_date = datetime.datetime.now().isoformat()
     
     # Determinar la fuente de forma elegante
     source_name = "Fuente Externa"
@@ -93,7 +96,7 @@ def create_scientific_post(title, description, content, category, image_prompt=N
     template = f"""---
 title: "{title}"
 description: "{description}"
-pubDate: "{datetime.date.today().isoformat()}"
+pubDate: "{full_date}"
 category: "{category}"
 heroImage: "{hero_image}"
 author: "Vanguardia IA"

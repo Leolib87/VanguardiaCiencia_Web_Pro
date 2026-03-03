@@ -33,15 +33,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 file_map = {}
 
+# ESTÁNDAR EDITORIAL: Categorías Fijas
+SYSTEM_INSTRUCTION = (
+    "Actúa como el Editor Jefe de Vanguardia Ciencia. ES OBLIGATORIO que navegues a la URL proporcionada "
+    "y leas el artículo completo. Si el link falla, busca la noticia en Google para obtener los datos técnicos. "
+    "Extrae datos técnicos profundos y genera un JSON profesional en español. "
+    "CATEGORÍAS FIJAS (Elige la más adecuada): Salud y Medicina, Física y Química, Tecnología y Espacio, "
+    "Medio Ambiente, Inteligencia Artificial, Biología y Genómica. "
+    "Responde SOLO con un JSON: {'title', 'category', 'description', 'content', 'image_prompt'}."
+)
+
 async def process_with_gemini(url):
-    """Procesamiento asíncrono con navegación profunda."""
-    instruction = (
-        "Actúa como el Editor Jefe de Vanguardia Ciencia. ES OBLIGATORIO que navegues a la URL proporcionada "
-        "y leas el artículo completo. Si el link falla, busca la noticia en Google para obtener los datos técnicos. "
-        "Genera un JSON profesional en español: {'title', 'category', 'description', 'content', 'image_prompt'}."
-    )
+    """Procesamiento asíncrono con navegación profunda y categorías estandarizadas."""
     try:
-        command = f'gemini -y -p "{instruction} URL: {url}" -o stream-json'
+        command = f'gemini -y -p "{SYSTEM_INSTRUCTION} URL a investigar: {url}" -o stream-json'
         process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         
         full_response = ""
@@ -71,7 +76,7 @@ async def process_with_gemini(url):
     except: return None
 
 async def task_analysis(context, chat_id, url, ref_id, filename):
-    """Tarea en segundo plano para procesar la noticia (Bandeja o Link Directo)."""
+    """Tarea en segundo plano para procesar la noticia."""
     result = await process_with_gemini(url)
     if result:
         post_key = f"post_{ref_id}"
@@ -79,9 +84,10 @@ async def task_analysis(context, chat_id, url, ref_id, filename):
         
         preview = (
             f"✅ **ANÁLISIS COMPLETADO**\n\n"
-            f"📌 **{result.get('title', 'Sin título')}**\n\n"
+            f"📌 **{result.get('title', 'Sin título')}**\n"
+            f"🗂️ **Categoría:** {result.get('category')}\n\n"
             f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
-            f"¿Publicar en Vanguardia Ciencia?"
+            f"¿Publicar noticia?"
         )
         btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
                  InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
@@ -118,20 +124,12 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Procesador universal de mensajes y links."""
     if update.effective_user.id != ALLOWED_USER_ID: return
     text = update.message.text.strip()
-    
     if text.startswith("http"):
         url = text
-        ref_id = str(hash(url))[-5:] # ID corto único
-        
-        await update.message.reply_text(
-            f"📡 **¡Link directo detectado!**\n\nHe iniciado el análisis profundo. Como es un link externo, "
-            f"Gemini navegará por todo el artículo para redactar la noticia.\n\n"
-            f"Te avisaré en cuanto esté lista (3-5 min)."
-        )
-        # Usamos un nombre de archivo ficticio para links directos
+        ref_id = str(hash(url))[-5:]
+        await update.message.reply_text(f"📡 **Link detectado!** Análisis iniciado. Te avisaré en unos minutos.")
         asyncio.create_task(task_analysis(context, update.effective_chat.id, url, ref_id, f"direct_{ref_id}.json"))
     else:
         await update.message.reply_text("👋 Hola Leandro. Envíame un link directo o usa /bandeja.")
@@ -139,19 +137,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    
     data_parts = query.data.split('_')
     action = data_parts[0]
     ref_id = data_parts[1] if len(data_parts) > 1 else ""
 
-    if action == "p": # Selección desde bandeja
+    if action == "p":
         filename = file_map.get(ref_id)
         if not filename:
             await query.edit_message_text("❌ Referencia expirada.")
             return
         f_path = BANDEJA_DIR / filename
         with open(f_path, "r", encoding="utf-8") as f: news_data = json.load(f)
-        await query.edit_message_text(f"⏳ Análisis asíncrono iniciado para la noticia {ref_id}. Te avisaré en unos minutos.")
+        await query.edit_message_text(f"⏳ Iniciando análisis profundo de la noticia {ref_id}...")
         asyncio.create_task(task_analysis(context, update.effective_chat.id, news_data['link'], ref_id, filename))
 
     elif action == "pubfinal":
@@ -159,7 +156,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not item:
             await query.edit_message_text("❌ Datos perdidos.")
             return
-        await query.edit_message_text("🚀 Subiendo a la web...")
+        await query.edit_message_text("🚀 Publicando...")
         try:
             create_scientific_post(item['data']['title'], item['data']['description'], item['data']['content'], item['data']['category'], item['data'].get('image_prompt'), source_url=item['url'])
             push_to_github()
@@ -188,7 +185,7 @@ async def post_init(application):
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("radar", lambda u, c: subprocess.run([sys.executable, str(BASE_DIR / "radar.py")]))) # Simplificado para el radar
+    application.add_handler(CommandHandler("radar", lambda u, c: subprocess.run([sys.executable, str(BASE_DIR / "radar.py")])))
     application.add_handler(CommandHandler("bandeja", bandeja))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     application.add_handler(CallbackQueryHandler(button_callback))
