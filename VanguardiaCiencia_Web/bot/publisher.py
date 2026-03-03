@@ -170,8 +170,12 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         f_path = BANDEJA_DIR / filename
         with open(f_path, "r", encoding="utf-8") as f: news_data = json.load(f)
+        
+        # ASEGURAR QUE LA URL SE GUARDE CORRECTAMENTE
+        url_to_process = news_data.get('link')
+        
         await query.edit_message_text(f"⏳ Análisis asíncrono iniciado ({ref_id})...")
-        asyncio.create_task(task_analysis(context, update.effective_chat.id, news_data['link'], ref_id, filename))
+        asyncio.create_task(task_analysis(context, update.effective_chat.id, url_to_process, ref_id, filename))
 
     elif action == "pubfinal":
         item = context.bot_data.get(f"post_{ref_id}")
