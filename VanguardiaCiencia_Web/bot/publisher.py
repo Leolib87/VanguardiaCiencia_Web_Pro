@@ -300,12 +300,87 @@ async def investigar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.delete()
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
+async def semanal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Accede al número semanal completo de Nature y extrae todos los artículos destacados."""
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    msg = await update.message.reply_text("🔎 Explorando la edición semanal completa de Nature... (Esto puede tomar un momento)")
+    
+    prompt = (
+        "Navega a https://www.nature.com/nature/current-issue y extrae los títulos y links de TODOS los artículos "
+        "de investigación (Research Articles) y noticias de impacto que encuentres. Captura hasta 30 resultados. "
+        "IMPORTANTE: Los links deben ser URLs COMPLETAS (https://www.nature.com/...). "
+        "Devuelve SOLO un JSON: [{'title': '...', 'link': '...'}]"
+    )
+    
+    try:
+        command = f'gemini -y -p "{prompt}" -o stream-json'
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        
+        full_response = ""
+        while True:
+            line = await process.stdout.readline()
+            if not line: break
+            try:
+                line_decoded = line.decode('utf-8', errors='ignore').strip()
+                if not (line_decoded.startswith('{') and line_decoded.endswith('}')): continue
+                data = json.loads(line_decoded)
+                if data.get('type') == 'message' and data.get('role') == 'assistant':
+                    chunk = data.get('content', '')
+                    if chunk: full_response += chunk
+            except: continue
+        
+        await process.wait()
+        content = ANSI_ESCAPE.sub('', full_response).strip()
+        content = re.sub(r'```json\s*|```\s*', '', content).strip()
+        json_match = re.search(r'\[.*\]', content, re.DOTALL)
+        
+        if json_match:
+            results = json.loads(json_match.group(0))
+            text = f"📅 **EDICIÓN SEMANAL: {len(results)} ARTÍCULOS DETECTADOS**\n\n"
+            keyboard = []
+            row = []
+            file_map.clear() # Empezar de cero para esta lista
+            
+            for i, res in enumerate(results):
+                idx = str(i + 1)
+                link = res['link']
+                if link.startswith('/'): link = f"https://www.nature.com{link}"
+                
+                filename = f"weekly_{idx}.json"
+                with open(BANDEJA_DIR / filename, "w", encoding="utf-8") as f:
+                    json.dump({"title": res['title'], "link": link, "source": "Nature Weekly"}, f, indent=4, ensure_ascii=False)
+                
+                file_map[idx] = filename
+                text += f"{idx}. 📘 **{res['title'][:70]}...**\n\n"
+                
+                row.append(InlineKeyboardButton(idx, callback_data=f"p_{idx}"))
+                if len(row) == 5:
+                    keyboard.append(row)
+                    row = []
+            
+            if row: keyboard.append(row)
+            
+            # Si el texto es muy largo para un solo mensaje de Telegram (4096 carac)
+            if len(text) > 4000:
+                await msg.delete()
+                await update.message.reply_text(text[:4000] + "...", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+            else:
+                await msg.delete()
+                await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+        else:
+            await msg.edit_text("❌ No pude extraer la lista completa. Intenta de nuevo o revisa si Nature cambió su estructura.")
+    except Exception as e:
+        logging.error(f"Error en semanal masivo: {e}")
+        await msg.edit_text("❌ Error al procesar la edición semanal.")
+
 async def post_init(application):
     await application.bot.set_my_commands([
         BotCommand("start", "Inicio"),
         BotCommand("radar", "Escanear noticias"),
+        BotCommand("semanal", "Ver número actual de Nature"),
         BotCommand("bandeja", "Ver pendientes"),
-        BotCommand("investigar", "Buscar papers en PubMed [tema]"),
+        BotCommand("investigar", "PubMed [tema]"),
         BotCommand("stats", "Estadísticas web")
     ])
 
@@ -314,6 +389,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🔬 Vanguardia Editor v2.3 INTERACTIVO Activo")))
     application.add_handler(CommandHandler("radar", run_radar_cmd))
     application.add_handler(CommandHandler("bandeja", bandeja))
+    application.add_handler(CommandHandler("semanal", semanal))
     application.add_handler(CommandHandler("investigar", investigar))
     application.add_handler(CommandHandler("stats", stats))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
