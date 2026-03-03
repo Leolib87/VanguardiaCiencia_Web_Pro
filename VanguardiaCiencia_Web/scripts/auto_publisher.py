@@ -30,6 +30,15 @@ def generate_image_freepik(prompt, slug):
         
         print(f"📡 Solicitando imagen a Freepik para: {slug}...")
         response = requests.post(url, headers=headers, json=data)
+        
+        # Guardar balance de créditos (si viene en los headers)
+        remaining = response.headers.get("x-ratelimit-remaining")
+        limit = response.headers.get("x-ratelimit-limit")
+        if remaining and limit:
+            balance_text = f"{remaining} / {limit} créditos"
+            with open(BASE_DIR / "scripts" / "freepik_balance.txt", "w") as f:
+                f.write(balance_text)
+
         if response.status_code == 200:
             result = response.json()
             image_data_obj = result.get('data', [{}])[0]

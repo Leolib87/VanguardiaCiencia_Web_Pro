@@ -208,11 +208,105 @@ async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.get_event_loop().run_in_executor(None, run_script)
     await msg.edit_text("✅ **Radar finalizado.** Las fuentes han sido actualizadas. Usa /bandeja para ver las novedades.")
 
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra estadísticas detalladas de la web y el sistema."""
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    msg = await update.message.reply_text("📊 Calculando estadísticas reales...")
+    
+    # 1. Contar noticias por categoría
+    blog_dir = Path(BASE_DIR).parent / "src" / "content" / "blog"
+    files = list(blog_dir.glob("*.md"))
+    total_posts = len(files)
+    
+    cat_counts = {}
+    for f_path in files:
+        try:
+            with open(f_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                match = re.search(r'category: "(.*?)"', content)
+                if match:
+                    cat = match.group(1)
+                    cat_counts[cat] = cat_counts.get(cat, 0) + 1
+        except: continue
+
+    # 2. Leer balance de Freepik
+    freepik_info = "Último saldo: Desconocido"
+    balance_file = Path(BASE_DIR).parent / "scripts" / "freepik_balance.txt"
+    if balance_file.exists():
+        try:
+            with open(balance_file, "r") as f:
+                freepik_info = f.read().strip()
+        except: pass
+
+    # 3. Preparar el reporte
+    stats_text = f"📈 **ESTADÍSTICAS VANGUARDIA CIENCIA**\n\n"
+    stats_text += f"📝 **Total Noticias:** {total_posts}\n\n"
+    stats_text += "📂 **Distribución por Categoría:**\n"
+    
+    for cat, count in sorted(cat_counts.items(), key=lambda x: x[1], reverse=True):
+        stats_text += f"• {cat}: {count}\n"
+    
+    stats_text += f"\n📥 **Bandeja de Entrada:** {len(list(BANDEJA_DIR.glob('*.json')))} pendientes\n"
+    stats_text += f"🚀 **Servidor:** Online (Vercel)\n"
+    stats_text += f"🎨 **Freepik AI:** {freepik_info}"
+
+    await msg.edit_text(stats_text, parse_mode="Markdown")
+
+from pubmed_scout import search_pubmed
+
+# ... (resto de imports y config)
+
+async def investigar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Busca investigaciones reales en PubMed."""
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    query = " ".join(context.args)
+    if not query:
+        await update.message.reply_text("Uso: /investigar [tema] (ej: /investigar longevidad)")
+        return
+
+    msg = await update.message.reply_text(f"🔍 Investigando '{query}' en PubMed Central...")
+    
+    def run_search():
+        return search_pubmed(query, max_results=5)
+    
+    results = await asyncio.get_event_loop().run_in_executor(None, run_search)
+    
+    if not results:
+        await msg.edit_text(f"❌ No encontré papers recientes sobre '{query}'.")
+        return
+
+    text = f"🧬 **RESULTADOS DE INVESTIGACIÓN PARA: {query.upper()}**\n\n"
+    keyboard = []
+    row = []
+    
+    # Usar el mismo sistema de file_map para procesar
+    for i, res in enumerate(results):
+        idx = str(len(file_map) + 1)
+        # Guardamos en la bandeja temporalmente para que se pueda procesar
+        filename = f"pubmed_{idx}.json"
+        f_path = BANDEJA_DIR / filename
+        with open(f_path, "w", encoding="utf-8") as f:
+            json.dump(res, f, indent=4, ensure_ascii=False)
+        
+        file_map[idx] = filename
+        text += f"{idx}. 🔬 **{res['title'][:70]}...**\n   📅 *{res['date']}*\n\n"
+        row.append(InlineKeyboardButton(idx, callback_data=f"p_{idx}"))
+        if len(row) == 5:
+            keyboard.append(row)
+            row = []
+    
+    if row: keyboard.append(row)
+    await msg.delete()
+    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+
 async def post_init(application):
     await application.bot.set_my_commands([
         BotCommand("start", "Inicio"),
-        BotCommand("radar", "Escanear fuentes"),
-        BotCommand("bandeja", "Ver bandeja")
+        BotCommand("radar", "Escanear noticias"),
+        BotCommand("bandeja", "Ver pendientes"),
+        BotCommand("investigar", "Buscar papers en PubMed [tema]"),
+        BotCommand("stats", "Estadísticas web")
     ])
 
 if __name__ == '__main__':
@@ -220,6 +314,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("🔬 Vanguardia Editor v2.3 INTERACTIVO Activo")))
     application.add_handler(CommandHandler("radar", run_radar_cmd))
     application.add_handler(CommandHandler("bandeja", bandeja))
+    application.add_handler(CommandHandler("investigar", investigar))
+    application.add_handler(CommandHandler("stats", stats))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     application.add_handler(CallbackQueryHandler(button_callback))
     application.run_polling()
