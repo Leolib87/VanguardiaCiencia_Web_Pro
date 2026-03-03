@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://vanguardiaciencia.com',
+	site: 'https://vanguardia-ciencia-web-pro.vercel.app',
 	integrations: [mdx(), sitemap()],
 	image: {
 		remotePatterns: [
