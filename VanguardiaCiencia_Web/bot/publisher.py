@@ -5,6 +5,7 @@ import logging
 import json
 import re
 import subprocess
+from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from pathlib import Path
@@ -378,12 +379,79 @@ async def semanal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.error(f"Error en semanal masivo: {e}")
         await msg.edit_text("❌ Error al procesar la edición semanal.")
 
+async def boletin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Genera un resumen semanal basado en las últimas 5 noticias publicadas."""
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    msg = await update.message.reply_text("🗞️ Generando boletín semanal 'Vanguardia Weekly'...")
+    
+    # 1. Obtener las últimas 5 noticias reales del blog
+    blog_dir = Path(BASE_DIR).parent / "src" / "content" / "blog"
+    files = sorted(list(blog_dir.glob("*.md")), key=os.path.getmtime, reverse=True)[:5]
+    
+    if not files:
+        await msg.edit_text("❌ No hay noticias publicadas para generar un boletín.")
+        return
+
+    summaries = []
+    for f_path in files:
+        try:
+            content = f_path.read_text(encoding='utf-8')
+            # Extracción más flexible de metadatos
+            title_match = re.search(r'title:\s*"(.*?)"', content)
+            desc_match = re.search(r'description:\s*"(.*?)"', content)
+            if title_match and desc_match:
+                summaries.append(f"NOTICIA: {title_match.group(1)}\nRESUMEN: {desc_match.group(1)}")
+        except Exception as e:
+            logging.error(f"Error leyendo post {f_path.name}: {e}")
+            continue
+
+    if not summaries:
+        await msg.edit_text("❌ No pude leer los datos de las noticias publicadas.")
+        return
+
+    # 2. Pedir a Gemini que redacte el boletín (Modo Texto, no JSON para este caso)
+    newsletter_prompt = (
+        "Actúa como el Editor Jefe de Vanguardia Ciencia. Eres un experto en comunicación científica. "
+        "Basándote en estas noticias de la semana, redacta un boletín semanal (Vanguardia Weekly) "
+        "elegante, técnico y profesional en español. Conecta los temas entre sí y añade una reflexión editorial. "
+        "Usa Markdown (negritas, listas) y emojis científicos.\n\n"
+        "DATOS DE LA SEMANA:\n" + "\n\n".join(summaries)
+    )
+    
+    try:
+        # Para el boletín usamos respuesta directa de texto
+        command = f'gemini -y -p "{newsletter_prompt}"'
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, _ = await process.communicate()
+        text = stdout.decode('utf-8', errors='ignore').strip()
+        
+        # Limpiar códigos ANSI si existen
+        clean_text = ANSI_ESCAPE.sub('', text).strip()
+        
+        if clean_text:
+            header = "🗞️ **VANGUARDIA WEEKLY - BOLETÍN CIENTÍFICO**\n\n"
+            full_msg = header + clean_text
+            
+            if len(full_msg) > 4000:
+                for i in range(0, len(full_msg), 4000):
+                    await update.message.reply_text(full_msg[i:i+4000], parse_mode="Markdown")
+            else:
+                await msg.delete()
+                await update.message.reply_text(full_msg, parse_mode="Markdown")
+        else:
+            await msg.edit_text("❌ Gemini no generó el contenido del boletín.")
+    except Exception as e:
+        logging.error(f"Error en Gemini boletín: {e}")
+        await msg.edit_text("❌ Error técnico al generar el boletín.")
+
 async def post_init(application):
     await application.bot.set_my_commands([
         BotCommand("start", "Inicio"),
         BotCommand("radar", "Escanear noticias"),
-        BotCommand("semanal", "Ver número actual de Nature"),
+        BotCommand("semanal", "Número actual de Nature"),
         BotCommand("bandeja", "Ver pendientes"),
+        BotCommand("boletin", "Generar Newsletter semanal"),
         BotCommand("investigar", "PubMed [tema]"),
         BotCommand("stats", "Estadísticas web")
     ])
@@ -395,6 +463,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("bandeja", bandeja))
     application.add_handler(CommandHandler("semanal", semanal))
     application.add_handler(CommandHandler("investigar", investigar))
+    application.add_handler(CommandHandler("boletin", boletin))
     application.add_handler(CommandHandler("stats", stats))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     application.add_handler(CallbackQueryHandler(button_callback))
