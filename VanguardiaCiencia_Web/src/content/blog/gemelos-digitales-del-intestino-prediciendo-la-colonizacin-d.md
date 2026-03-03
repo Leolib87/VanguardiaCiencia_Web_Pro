@@ -1,15 +1,14 @@
 ---
-    title: "Gemelos Digitales del Intestino: Prediciendo la Colonización de Probióticos mediante Modelos Metabólicos"
-    description: "Investigadores desarrollan modelos metabólicos a escala de comunidad (MCM) para crear simulaciones personalizadas del intestino, logrando predecir con hasta un 80% de precisión qué bacterias lograrán establecerse en el microbioma según la dieta del individuo."
-    pubDate: "2026-03-03T08:39:12.212991"
-    category: "Biología y Genómica"
-    source: "ScienceNews"
-    heroImage: "../../assets/gemelos-digitales-del-intestino-prediciendo-la-colonizacin-d-hero.jpg"
-    author: "Vanguardia IA"
-    tags: ["Ciencia", "Biología y Genómica", "Innovación"]
-    layout: "../../layouts/BlogPost.astro"
-    ---
-
+title: "Gemelos Digitales del Intestino: Prediciendo la Colonización de Probióticos mediante Modelos Metabólicos"
+description: "Investigadores desarrollan modelos metabólicos a escala de comunidad (MCM) para crear simulaciones personalizadas del intestino, logrando predecir con hasta un 80% de precisión qué bacterias lograrán establecerse en el microbioma según la dieta del individuo."
+pubDate: "2026-03-03T08:39:12.212991"
+category: "Biología y Genómica"
+source: "ScienceNews"
+heroImage: "../../assets/gemelos-digitales-del-intestino-prediciendo-la-colonizacin-d-hero.jpg"
+author: "Vanguardia IA"
+tags: ["Ciencia", "Biología y Genómica", "Innovación"]
+layout: "../../layouts/BlogPost.astro"
+---
 
 ### Resumen Ejecutivo
 Investigadores desarrollan modelos metabólicos a escala de comunidad (MCM) para crear simulaciones personalizadas del intestino, logrando predecir con hasta un 80% de precisión qué bacterias lograrán establecerse en el microbioma según la dieta del individuo.

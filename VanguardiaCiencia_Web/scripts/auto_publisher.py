@@ -94,16 +94,16 @@ def create_scientific_post(title, description, content, category, image_prompt=N
     source_footer = f"\n---\n**Fuente:** [{source_name}]({source_url})" if source_url else ""
 
     template = f"""---
-    title: "{title}"
-    description: "{description}"
-    pubDate: "{full_date}"
-    category: "{category}"
-    source: "{source_name}"
-    heroImage: "{hero_image}"
-    author: "Vanguardia IA"
-    tags: ["Ciencia", "{category}", "Innovación"]
-    layout: "../../layouts/BlogPost.astro"
-    ---
+title: "{title}"
+description: "{description}"
+pubDate: "{full_date}"
+category: "{category}"
+source: "{source_name}"
+heroImage: "{hero_image}"
+author: "Vanguardia IA"
+tags: ["Ciencia", "{category}", "Innovación"]
+layout: "../../layouts/BlogPost.astro"
+---
 
 
 ### Resumen Ejecutivo
