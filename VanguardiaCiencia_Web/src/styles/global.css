@@ -71,15 +71,16 @@ body {
 }
 
 main {
-	width: 1200px; /* Ancho equilibrado para PC */
-	max-width: 95%;
-	margin: auto;
-	padding: 3rem 0;
+	width: 100%;
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 3rem 2rem;
+	box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
 	main {
-		padding: 1.5rem 0;
+		padding: 1.5rem 1rem; /* Margen simétrico para smartphone */
 	}
 }
 

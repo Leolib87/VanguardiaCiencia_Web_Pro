@@ -46,8 +46,9 @@ const categoryClass = (cat) => {
 				width: 100%;
 				max-width: 1400px;
 				margin: 0 auto;
-				padding: 2rem 1.5rem; /* Padding simétrico */
+				padding: 2rem 1.5rem;
 				box-sizing: border-box;
+				overflow-x: hidden; /* Seguridad extra */
 			}
 			.hero-section {
 				display: grid;
@@ -60,33 +61,32 @@ const categoryClass = (cat) => {
 				border-radius: 32px;
 				border: 1px solid var(--card-border);
 				box-shadow: 0 10px 30px var(--card-shadow);
-				overflow: hidden; /* Evita fugas visuales */
+				width: 100%;
+				box-sizing: border-box;
 			}
 			.hero-content h1 {
 				font-size: 3.5rem;
 				margin: 0 0 1.5rem 0;
 				line-height: 1.1;
-				text-align: left;
+				word-break: break-word; /* Evita que el texto empuje la caja */
 			}
 			.hero-image img {
 				width: 100%;
+				max-width: 100%;
 				height: 500px;
 				object-fit: cover;
 				border-radius: 20px;
 				box-shadow: 0 20px 40px var(--card-shadow);
 				display: block;
-				margin: 0 auto;
 			}
 			.recent-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 				gap: 2.5rem;
 				width: 100%;
-				justify-items: center; /* Centrado preciso de las tarjetas */
+				justify-content: center; /* Centrado del grid */
 			}
 			.recent-card {
-				width: 100%; /* Asegura que ocupe su espacio asignado */
-				max-width: 450px;
 				text-decoration: none;
 				color: inherit;
 				transition: all 0.3s ease;
@@ -95,6 +95,9 @@ const categoryClass = (cat) => {
 				border-radius: 24px;
 				border: 1px solid var(--card-border);
 				box-shadow: 0 4px 15px var(--card-shadow);
+				display: flex;
+				flex-direction: column;
+				width: 100%;
 				box-sizing: border-box;
 			}
 
@@ -104,27 +107,27 @@ const categoryClass = (cat) => {
 				}
 				.hero-section {
 					grid-template-columns: 1fr;
-					padding: 2rem 1.5rem;
+					padding: 2rem 1.2rem;
 					gap: 2.5rem;
-					text-align: center; /* Centrado de texto en móvil */
+					text-align: center;
+					margin-bottom: 3rem;
 				}
 				.hero-content h1 {
-					font-size: 2.5rem;
-					text-align: center;
-				}
-				.hero-content p {
+					font-size: 2.2rem;
 					text-align: center;
 				}
 				.hero-image img {
-					height: 300px;
-					max-width: 100%;
+					height: auto;
+					max-height: 300px;
 				}
 				.recent-grid {
-					grid-template-columns: 1fr; /* Una columna pura en smartphone */
+					grid-template-columns: 1fr; /* Una sola columna pura */
+					padding: 0;
 					gap: 2rem;
 				}
 				.recent-card {
-					margin: 0 auto; /* Centrado absoluto */
+					max-width: 100%;
+					margin: 0 auto;
 				}
 			}
 		</style>
