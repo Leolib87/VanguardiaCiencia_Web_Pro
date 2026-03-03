@@ -141,6 +141,14 @@ h2 { font-size: 2.2rem; margin-top: 3rem; border-bottom: 1px solid var(--border-
 	margin-bottom: 1rem;
 }
 
+/* Colores por Categoría */
+.badge.salud-y-medicina { background: #fee2e2; color: #dc2626; }
+.badge.física-y-química { background: #f3e8ff; color: #9333ea; }
+.badge.tecnología-y-espacio { background: #e0f2fe; color: #0284c7; }
+.badge.medio-ambiente { background: #dcfce7; color: #16a34a; }
+.badge.inteligencia-artificial { background: #fef3c7; color: #d97706; }
+.badge.biología-y-genómica { background: #e0fff3; color: #0891b2; }
+
 .btn-primary {
 	background: var(--accent);
 	color: white !important;

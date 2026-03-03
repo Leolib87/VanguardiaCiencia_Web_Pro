@@ -6,9 +6,12 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = (await getCollection('blog')).sort((a, b) => {
+	const dateA = new Date(a.data.pubDate).valueOf();
+	const dateB = new Date(b.data.pubDate).valueOf();
+	if (dateB !== dateA) return dateB - dateA;
+	return b.id.localeCompare(a.id);
+});
 
 const featuredPost = posts[0];
 const otherPosts = posts.slice(1);
@@ -22,8 +25,9 @@ const otherPosts = posts.slice(1);
 			main {
 				width: 100%;
 				max-width: 1400px;
-				margin: auto;
-				padding: 2rem 1rem;
+				margin: 0 auto;
+				padding: 2rem 1.5rem;
+				box-sizing: border-box;
 			}
 			.featured-section {
 				display: grid;
@@ -36,6 +40,7 @@ const otherPosts = posts.slice(1);
 				border: 1px solid var(--card-border);
 				box-shadow: 0 10px 30px var(--card-shadow);
 				align-items: center;
+				overflow: hidden;
 			}
 			.featured-image img {
 				width: 100%;
@@ -43,11 +48,13 @@ const otherPosts = posts.slice(1);
 				object-fit: cover;
 				border-radius: 20px;
 				box-shadow: 0 20px 40px var(--card-shadow);
+				display: block;
 			}
 			.featured-content h1 {
 				font-size: 3rem;
 				margin: 1rem 0 1.5rem 0;
 				line-height: 1.2;
+				text-align: left;
 			}
 			ul {
 				display: grid;
@@ -56,8 +63,12 @@ const otherPosts = posts.slice(1);
 				list-style-type: none;
 				margin: 0;
 				padding: 0;
+				width: 100%;
+				justify-items: center;
 			}
 			.blog-card {
+				width: 100%;
+				max-width: 450px;
 				height: 100%;
 				display: flex;
 				flex-direction: column;
@@ -67,6 +78,7 @@ const otherPosts = posts.slice(1);
 				overflow: hidden;
 				box-shadow: 0 4px 15px var(--card-shadow);
 				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+				box-sizing: border-box;
 			}
 			.blog-card:hover {
 				transform: translateY(-10px);
@@ -136,9 +148,36 @@ const otherPosts = posts.slice(1);
 			}
 
 			@media (max-width: 1000px) {
-				.featured-section { grid-template-columns: 1fr; padding: 2rem; }
-				.featured-image img { height: 350px; }
-				.featured-content h1 { font-size: 2.2rem; }
+				main {
+					padding: 1.5rem 1rem;
+				}
+				.featured-section { 
+					grid-template-columns: 1fr; 
+					padding: 2rem 1.5rem; 
+					text-align: center;
+				}
+				.featured-image img { 
+					height: 350px; 
+					max-width: 100%;
+					margin: 0 auto;
+				}
+				.featured-content h1 { 
+					font-size: 2.2rem; 
+					text-align: center;
+				}
+				.featured-content .meta-tags {
+					justify-content: center;
+				}
+				.featured-content .description {
+					text-align: center;
+				}
+				ul {
+					grid-template-columns: 1fr;
+					gap: 2rem;
+				}
+				.blog-card {
+					margin: 0 auto;
+				}
 			}
 		</style>
 	</head>
@@ -198,7 +237,6 @@ const otherPosts = posts.slice(1);
 		</main>
 
 		<script is:inline>
-			// Lógica para filtrar por categoría desde la URL
 			const urlParams = new URLSearchParams(window.location.search);
 			const categoryFilter = urlParams.get('category');
 			
@@ -209,24 +247,19 @@ const otherPosts = posts.slice(1);
 				
 				if (sectionLabel) sectionLabel.textContent = `Sección: ${categoryFilter}`;
 
-				// Encontrar el primer post de la categoría para destacarlo
-				let firstOfCategoryFound = false;
-
-				// Ocultar el featured actual si no es de la categoría
-				const featuredCategory = featured.querySelector('.badge').textContent.trim();
-				if (featuredCategory !== categoryFilter) {
-					featured.style.display = 'none';
-				} else {
-					firstOfCategoryFound = true;
-					featured.querySelector('.read-tag').textContent = `DESTACADO EN ${categoryFilter.toUpperCase()}`;
+				if (featured) {
+					const badge = featured.querySelector('.badge');
+					if (badge && badge.textContent.trim() !== categoryFilter) {
+						featured.style.display = 'none';
+					} else {
+						const tag = featured.querySelector('.read-tag');
+						if (tag) tag.textContent = `DESTACADO EN ${categoryFilter.toUpperCase()}`;
+					}
 				}
 
 				gridItems.forEach(item => {
-					const itemCategory = item.getAttribute('data-category');
-					if (itemCategory === categoryFilter) {
+					if (item.getAttribute('data-category') === categoryFilter) {
 						item.style.display = 'block';
-						// Si no encontramos un featured arriba, podríamos promover el primero aquí (pero Astro es estático)
-						// Por ahora simplemente filtramos.
 					} else {
 						item.style.display = 'none';
 					}
