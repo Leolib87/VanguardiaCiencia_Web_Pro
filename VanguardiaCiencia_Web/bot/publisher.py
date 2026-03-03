@@ -44,7 +44,7 @@ SYSTEM_INSTRUCTION = (
 )
 
 async def process_with_gemini(url):
-    """Procesamiento profundo asíncrono."""
+    """Procesamiento profundo asíncrono con navegación."""
     try:
         command = f'gemini -y -p "{SYSTEM_INSTRUCTION} URL a investigar: {url}" -o stream-json'
         process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -79,27 +79,26 @@ async def task_analysis(context, chat_id, url, ref_id, filename):
     """Tarea en segundo plano para procesar la noticia."""
     result = await process_with_gemini(url)
     if result:
-        # Determinar icono para el mensaje de Telegram
-        icon = "🔬" if "nature.com" in url else "📰"
-        
         post_key = f"post_{ref_id}"
         context.bot_data[post_key] = {'data': result, 'url': url, 'file': str(BANDEJA_DIR / filename)}
         
         preview = (
             f"✅ **ANÁLISIS COMPLETADO**\n\n"
-            f"{icon} **{result.get('title', 'Sin título')}**\n"
+            f"📌 **{result.get('title', 'Sin título')}**\n"
             f"🗂️ **Categoría:** {result.get('category')}\n\n"
             f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
-            f"¿Publicar noticia en la web?"
+            f"¿Publicar noticia?"
         )
         btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
                  InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
         await context.bot.send_message(chat_id=chat_id, text=preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
     else:
-        await context.bot.send_message(chat_id=chat_id, text=f"❌ El análisis de la noticia {ref_id} falló.")
+        await context.bot.send_message(chat_id=chat_id, text=f"❌ El análisis de la noticia {ref_id} falló. Intenta con otro link.")
 
 async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    # Ordenar por fecha de creación del archivo (más recientes primero)
     files = sorted(list(BANDEJA_DIR.glob("*.json")), key=os.path.getmtime, reverse=True)
     if not files:
         await update.message.reply_text("📭 Bandeja vacía. Usa /radar.")
@@ -110,7 +109,7 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     row = []
     file_map.clear()
 
-    # Mostrar hasta 20 noticias
+    # Mostrar EXACTAMENTE hasta 20 noticias
     for i, f_path in enumerate(files[:20]):
         try:
             with open(f_path, "r", encoding="utf-8") as f:
@@ -118,12 +117,10 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
             idx = str(i + 1)
             file_map[idx] = f_path.name
             
-            # Icono según fuente
-            source = data.get('source', 'Nature')
-            icon = "🔬" if source == "Nature" else "📰"
-            
+            # Icono según fuente (desde el archivo guardado por el radar)
+            source_info = data.get('source', 'Nature')
             title = data.get('title', 'Sin título').replace('*', '').replace('_', '')
-            text += f"{idx}. {icon} **{title[:65]}...**\n\n"
+            text += f"{idx}. {source_info} **{title[:65]}...**\n\n"
             
             row.append(InlineKeyboardButton(idx, callback_data=f"p_{idx}"))
             if len(row) == 5:
@@ -136,9 +133,10 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
-    msg = await update.message.reply_text("📡 Radar: Escaneando Nature y Science News...")
+    msg = await update.message.reply_text("📡 Radar: Escaneando todas las fuentes...")
+    # Ejecutamos el script radar.py
     subprocess.run([sys.executable, str(BASE_DIR / "radar.py")])
-    await msg.edit_text("✅ Radar finalizado. Usa /bandeja para ver las 20 mejores opciones.")
+    await msg.edit_text("✅ Radar finalizado. Usa /bandeja para ver las 20 opciones más frescas.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
@@ -146,7 +144,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text.startswith("http"):
         url = text
         ref_id = str(hash(url))[-5:]
-        await update.message.reply_text(f"📡 **Link detectado!** Análisis iniciado...")
+        await update.message.reply_text(f"📡 **Link detectado!** Iniciando análisis asíncrono. Te avisaré en unos minutos.")
         asyncio.create_task(task_analysis(context, update.effective_chat.id, url, ref_id, f"direct_{ref_id}.json"))
     else:
         await update.message.reply_text("👋 Hola. Envíame un link o usa /bandeja.")
@@ -161,11 +159,11 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if action == "p":
         filename = file_map.get(ref_id)
         if not filename:
-            await query.edit_message_text("❌ Referencia expirada.")
+            await query.edit_message_text("❌ Referencia expirada. Usa /bandeja de nuevo.")
             return
         f_path = BANDEJA_DIR / filename
         with open(f_path, "r", encoding="utf-8") as f: news_data = json.load(f)
-        await query.edit_message_text(f"⏳ Análisis asíncrono iniciado ({ref_id})...")
+        await query.edit_message_text(f"⏳ Análisis asíncrono iniciado ({ref_id})...\nTe enviaré la propuesta en unos minutos.")
         asyncio.create_task(task_analysis(context, update.effective_chat.id, news_data['link'], ref_id, filename))
 
     elif action == "pubfinal":
@@ -184,14 +182,14 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif action == "del":
         item = context.bot_data.get(f"post_{ref_id}")
-        file_path = item['file'] if item else (BANDEJA_DIR / file_map.get(ref_id) if ref_id in file_map else None)
+        file_path = item['file'] if item else (str(BANDEJA_DIR / file_map.get(ref_id)) if ref_id in file_map else None)
         if file_path and os.path.exists(file_path): os.remove(file_path)
-        await query.edit_message_text("🗑️ Eliminada de la bandeja.")
+        await query.edit_message_text("🗑️ Noticia eliminada de la bandeja.")
 
 async def post_init(application):
     await application.bot.set_my_commands([
         BotCommand("start", "Inicio"),
-        BotCommand("radar", "Escanear Nature y Science"),
+        BotCommand("radar", "Escanear fuentes científicas"),
         BotCommand("bandeja", "Ver 20 noticias pendientes")
     ])
 
