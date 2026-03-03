@@ -79,15 +79,18 @@ async def task_analysis(context, chat_id, url, ref_id, filename):
     """Tarea en segundo plano para procesar la noticia."""
     result = await process_with_gemini(url)
     if result:
+        # Determinar icono para el mensaje de Telegram
+        icon = "🔬" if "nature.com" in url else "📰"
+        
         post_key = f"post_{ref_id}"
         context.bot_data[post_key] = {'data': result, 'url': url, 'file': str(BANDEJA_DIR / filename)}
         
         preview = (
             f"✅ **ANÁLISIS COMPLETADO**\n\n"
-            f"📌 **{result.get('title', 'Sin título')}**\n"
+            f"{icon} **{result.get('title', 'Sin título')}**\n"
             f"🗂️ **Categoría:** {result.get('category')}\n\n"
             f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
-            f"¿Publicar noticia?"
+            f"¿Publicar noticia en la web?"
         )
         btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
                  InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
@@ -117,10 +120,10 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             # Icono según fuente
             source = data.get('source', 'Nature')
-            icon = "🔬" if source == "Nature" else "🧪"
+            icon = "🔬" if source == "Nature" else "📰"
             
             title = data.get('title', 'Sin título').replace('*', '').replace('_', '')
-            text += f"{idx}. {icon} {title[:65]}...\n\n"
+            text += f"{idx}. {icon} **{title[:65]}...**\n\n"
             
             row.append(InlineKeyboardButton(idx, callback_data=f"p_{idx}"))
             if len(row) == 5:
