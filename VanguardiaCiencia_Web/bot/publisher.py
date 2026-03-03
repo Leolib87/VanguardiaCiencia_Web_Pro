@@ -34,7 +34,7 @@ ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 file_map = {}
 
 async def process_with_gemini(url):
-    """Procesamiento asíncrono con timeout largo para saltar bloqueos de Nature."""
+    """Procesamiento asíncrono con navegación profunda."""
     instruction = (
         "Actúa como el Editor Jefe de Vanguardia Ciencia. ES OBLIGATORIO que navegues a la URL proporcionada "
         "y leas el artículo completo. Si el link falla, busca la noticia en Google para obtener los datos técnicos. "
@@ -47,7 +47,6 @@ async def process_with_gemini(url):
         full_response = ""
         try:
             while True:
-                # Permitimos hasta 8 minutos de análisis total
                 line = await asyncio.wait_for(process.stdout.readline(), timeout=480)
                 if not line: break
                 try:
@@ -71,15 +70,24 @@ async def process_with_gemini(url):
         return json.loads(json_match.group(0)) if json_match else None
     except: return None
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ALLOWED_USER_ID: return
-    await update.message.reply_text("🔬 **VANGUARDIA IA v2.2 (Modo Asíncrono)**\n\n/radar - Buscar nuevas\n/bandeja - Ver pendientes")
-
-async def run_radar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ALLOWED_USER_ID: return
-    msg = await update.message.reply_text("📡 Ejecutando Radar...")
-    subprocess.run([sys.executable, str(BASE_DIR / "radar.py")])
-    await msg.edit_text("✅ Radar finalizado. Usa /bandeja para ver los resultados.")
+async def task_analysis(context, chat_id, url, ref_id, filename):
+    """Tarea en segundo plano para procesar la noticia (Bandeja o Link Directo)."""
+    result = await process_with_gemini(url)
+    if result:
+        post_key = f"post_{ref_id}"
+        context.bot_data[post_key] = {'data': result, 'url': url, 'file': str(BANDEJA_DIR / filename)}
+        
+        preview = (
+            f"✅ **ANÁLISIS COMPLETADO**\n\n"
+            f"📌 **{result.get('title', 'Sin título')}**\n\n"
+            f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
+            f"¿Publicar en Vanguardia Ciencia?"
+        )
+        btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
+                 InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
+        await context.bot.send_message(chat_id=chat_id, text=preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
+    else:
+        await context.bot.send_message(chat_id=chat_id, text=f"❌ El análisis de la noticia {ref_id} falló. Intenta con otro link.")
 
 async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ALLOWED_USER_ID: return
@@ -109,25 +117,24 @@ async def bandeja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if row: keyboard.append(row)
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
-async def task_analysis(context, chat_id, url, ref_id, filename):
-    """Tarea en segundo plano para procesar la noticia."""
-    result = await process_with_gemini(url)
-    if result:
-        # Guardar en memoria para publicar
-        post_key = f"post_{ref_id}"
-        context.bot_data[post_key] = {'data': result, 'url': url, 'file': str(BANDEJA_DIR / filename)}
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Procesador universal de mensajes y links."""
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    text = update.message.text.strip()
+    
+    if text.startswith("http"):
+        url = text
+        ref_id = str(hash(url))[-5:] # ID corto único
         
-        preview = (
-            f"✅ **ANÁLISIS COMPLETADO**\n\n"
-            f"📌 **{result.get('title', 'Sin título')}**\n\n"
-            f"{result.get('content', 'Sin contenido')[:600]}...\n\n"
-            f"¿Publicar noticia?"
+        await update.message.reply_text(
+            f"📡 **¡Link directo detectado!**\n\nHe iniciado el análisis profundo. Como es un link externo, "
+            f"Gemini navegará por todo el artículo para redactar la noticia.\n\n"
+            f"Te avisaré en cuanto esté lista (3-5 min)."
         )
-        btns = [[InlineKeyboardButton("✅ PUBLICAR", callback_data=f"pubfinal_{ref_id}"),
-                 InlineKeyboardButton("🗑️ BORRAR", callback_data=f"del_{ref_id}")]]
-        await context.bot.send_message(chat_id=chat_id, text=preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
+        # Usamos un nombre de archivo ficticio para links directos
+        asyncio.create_task(task_analysis(context, update.effective_chat.id, url, ref_id, f"direct_{ref_id}.json"))
     else:
-        await context.bot.send_message(chat_id=chat_id, text=f"❌ El análisis de la noticia {ref_id} falló tras varios intentos.")
+        await update.message.reply_text("👋 Hola Leandro. Envíame un link directo o usa /bandeja.")
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -137,41 +144,39 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     action = data_parts[0]
     ref_id = data_parts[1] if len(data_parts) > 1 else ""
 
-    if action == "p":
+    if action == "p": # Selección desde bandeja
         filename = file_map.get(ref_id)
         if not filename:
-            await query.edit_message_text("❌ Referencia expirada. Usa /bandeja de nuevo.")
+            await query.edit_message_text("❌ Referencia expirada.")
             return
-            
         f_path = BANDEJA_DIR / filename
-        with open(f_path, "r", encoding="utf-8") as f:
-            news_data = json.load(f)
-        
-        await query.edit_message_text(f"⏳ **Análisis iniciado para la noticia {ref_id}**\n\nNature suele bloquear el acceso directo, por lo que Gemini buscará información alternativa. Te enviaré la propuesta en cuanto esté lista (aprox. 3-5 min).")
-        
-        # Lanzamos la tarea en segundo plano
+        with open(f_path, "r", encoding="utf-8") as f: news_data = json.load(f)
+        await query.edit_message_text(f"⏳ Análisis asíncrono iniciado para la noticia {ref_id}. Te avisaré en unos minutos.")
         asyncio.create_task(task_analysis(context, update.effective_chat.id, news_data['link'], ref_id, filename))
 
     elif action == "pubfinal":
         item = context.bot_data.get(f"post_{ref_id}")
         if not item:
-            await query.edit_message_text("❌ Error: Datos perdidos. Intenta de nuevo.")
+            await query.edit_message_text("❌ Datos perdidos.")
             return
-        
         await query.edit_message_text("🚀 Subiendo a la web...")
         try:
             create_scientific_post(item['data']['title'], item['data']['description'], item['data']['content'], item['data']['category'], item['data'].get('image_prompt'), source_url=item['url'])
             push_to_github()
             if os.path.exists(item['file']): os.remove(item['file'])
-            await query.edit_message_text(f"✨ **¡PUBLICADO!**\nLa noticia '{item['data']['title']}' ya está en camino a Vercel.")
+            await query.edit_message_text(f"✨ **¡PUBLICADO!**\n'{item['data']['title']}' ya está online.")
             del context.bot_data[f"post_{ref_id}"]
         except Exception as e: await query.edit_message_text(f"❌ Error: {e}")
 
     elif action == "del":
         item = context.bot_data.get(f"post_{ref_id}")
         if item and os.path.exists(item['file']): os.remove(item['file'])
-        await query.edit_message_text("🗑️ Noticia eliminada de la bandeja.")
+        await query.edit_message_text("🗑️ Noticia eliminada.")
         if f"post_{ref_id}" in context.bot_data: del context.bot_data[f"post_{ref_id}"]
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    await update.message.reply_text("🔬 **VANGUARDIA IA v2.2**\n\n- Envíame un link directo.\n- Usa /radar para buscar nuevas.\n- Usa /bandeja para ver pendientes.")
 
 async def post_init(application):
     await application.bot.set_my_commands([
@@ -181,10 +186,10 @@ async def post_init(application):
     ])
 
 if __name__ == '__main__':
-    # Usamos bot_data para persistir noticias analizadas durante la sesión
     application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("radar", run_radar_cmd))
+    application.add_handler(CommandHandler("radar", lambda u, c: subprocess.run([sys.executable, str(BASE_DIR / "radar.py")]))) # Simplificado para el radar
     application.add_handler(CommandHandler("bandeja", bandeja))
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     application.add_handler(CallbackQueryHandler(button_callback))
     application.run_polling()

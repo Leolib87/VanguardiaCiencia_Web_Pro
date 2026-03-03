@@ -10,15 +10,26 @@ import AdBanner from '../components/AdBanner.astro';
 const posts = (await getCollection('blog')).sort((a, b) => {
 	const dateA = new Date(a.data.pubDate).valueOf();
 	const dateB = new Date(b.data.pubDate).valueOf();
+	
 	if (dateB !== dateA) {
 		return dateB - dateA;
 	}
-	// Si las fechas son iguales, ordenamos por ID de forma descendente (el último añadido)
+	
+	// Si las fechas son iguales, usamos el orden descendente de IDs
+	// Astro no expone mtime directamente en getCollection de forma sencilla, 
+	// pero b.id.localeCompare(a.id) es una buena aproximación para slugs únicos.
 	return b.id.localeCompare(a.id);
 });
 
+// Forzar que la noticia más reciente sea la portada
 const featuredPost = posts[0];
 const recentPosts = posts.slice(1);
+
+// Helper para obtener la URL de la imagen de forma segura
+const getImageUrl = (heroImage) => {
+	if (!heroImage) return '/blog-placeholder-about.jpg';
+	return typeof heroImage === 'string' ? heroImage : heroImage.src;
+};
 ---
 
 <!doctype html>
@@ -158,7 +169,7 @@ const recentPosts = posts.slice(1);
 					</a>
 				</div>
 				<div class="hero-image">
-					<img src={typeof featuredPost.data.heroImage === 'string' ? featuredPost.data.heroImage : featuredPost.data.heroImage?.src} alt={featuredPost.data.title} />
+					<img src={getImageUrl(featuredPost.data.heroImage)} alt={featuredPost.data.title} />
 				</div>
 			</section>
 
@@ -169,7 +180,7 @@ const recentPosts = posts.slice(1);
 				<div class="recent-grid">
 					{recentPosts.map((post) => (
 						<a href={`/blog/${post.id}/`} class="recent-card">
-							<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt={post.data.title} />
+							<img src={getImageUrl(post.data.heroImage)} alt={post.data.title} />
 							<div class="meta-row">
 								<span class="badge">{post.data.category}</span>
 								<span class="read-tag-small">⏱️ 3 MIN</span>

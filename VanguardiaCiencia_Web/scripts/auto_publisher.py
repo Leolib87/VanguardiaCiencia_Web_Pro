@@ -2,6 +2,7 @@ import os
 import requests
 import datetime
 import json
+import re
 from pathlib import Path
 
 # Configuración de Rutas
@@ -63,7 +64,12 @@ def generate_image_freepik(prompt, slug):
 
 def create_scientific_post(title, description, content, category, image_prompt=None, source_url=None):
     """Crea un nuevo artículo en formato Astro con SEO y Estilo Pro."""
-    slug = title.lower().replace(" ", "-").replace(":", "").replace("'", "").replace('"', "")[:50]
+    # Sanitización robusta para Windows: solo letras, números y guiones
+    slug = title.lower()
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug) # Quitar todo lo que no sea letra, número o espacio
+    slug = re.sub(r'[\s]+', '-', slug).strip('-') # Cambiar espacios por guiones
+    slug = slug[:60] # Limitar longitud
+    
     filename = f"{slug}.md"
     filepath = CONTENT_DIR / filename
     
