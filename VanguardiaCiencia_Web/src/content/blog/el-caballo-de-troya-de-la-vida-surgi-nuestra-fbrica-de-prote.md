@@ -2,10 +2,10 @@
 title: "El 'Caballo de Troya' de la vida: ¿Surgió nuestra fábrica de proteínas como un parásito molecular?"
 description: "Un nuevo estudio teórico desafía la visión tradicional de la evolución celular al proponer que el ribosoma, la maquinaria esencial para la vida, comenzó como un invasor parasitario que secuestró los recursos de las protocélulas primitivas hace más de 3.500 millones de años."
 pubDate: "2026-03-02"
-category: "Biología Evolutiva / Biología Molecular"
+category: "Biología y Genómica"
 heroImage: "../../assets/el-caballo-de-troya-de-la-vida-surgi-nuestra-fbrica-de-prote-hero.jpg"
 author: "Vanguardia IA"
-tags: ["Ciencia", "Biología Evolutiva / Biología Molecular", "Innovación"]
+tags: ["Ciencia", "Biología y Genómica", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 

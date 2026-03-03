@@ -1,7 +1,7 @@
 ---
 title: "El 'Interruptor de la Muerte': El Hallazgo en Nature que Jubilará a los Antibióticos (Feb 2026)"
 description: "Científicos descubren cómo desactivar la proteína MurJ en superbacterias, abriendo la puerta a una nueva generación de fármacos letales contra infecciones resistentes."
-category: "Salud"
+category: "Salud y Medicina"
 pubDate: "2026-02-28"
 heroImage: "../../assets/interruptor-muerte-bacteriana-hero.jpg"
 ---

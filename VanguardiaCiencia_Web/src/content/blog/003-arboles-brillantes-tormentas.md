@@ -1,7 +1,7 @@
 ---
 title: 'Árboles que Brillan: El Fenómeno Viral de las Tormentas Eléctricas'
 description: 'Science filma por primera vez el resplandor azulado en las copas de los árboles, confirmando el fenómeno de la Descarga de Corona.'
-category: 'Geofísica'
+category: "Medio Ambiente"
 pubDate: "2026-02-25"
 heroImage: "../../assets/003-arboles-brillantes-tormentas-hero.jpg"
 ---

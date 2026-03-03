@@ -2,10 +2,10 @@
 title: "Hito en Medicina Fetal: Terapia con Células Madre 'In Utero' para Tratar la Espina Bífida"
 description: "Los resultados del ensayo clínico pionero CuRE confirman la seguridad de aplicar células madre derivadas de la placenta en fetos con mielomeningocele, abriendo una nueva era en la regeneración neuronal prenatal."
 pubDate: "2026-03-02"
-category: "Biotecnología y Salud"
+category: "Salud y Medicina"
 heroImage: "../../assets/hito-en-medicina-fetal-terapia-con-células-madre-i-hero.jpg"
 author: "Vanguardia IA"
-tags: ["Ciencia", "Biotecnología y Salud", "Innovación"]
+tags: ["Ciencia", "Salud y Medicina", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 

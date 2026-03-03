@@ -1,7 +1,7 @@
 ---
 title: "El 'Mapa del Tesoro' Lunar: Buscando Hielo en el Polo Sur (Science News, Feb 2026)"
 description: "China presenta el mapa detallado de depósitos de hielo para su misión Chang'e 7. Un paso decisivo para establecer la primera base humana permanente en la Luna."
-category: "Espacio"
+category: "Tecnología y Espacio"
 pubDate: "2026-02-26"
 heroImage: "../../assets/luna-hielo-change-7-hero.jpg"
 ---

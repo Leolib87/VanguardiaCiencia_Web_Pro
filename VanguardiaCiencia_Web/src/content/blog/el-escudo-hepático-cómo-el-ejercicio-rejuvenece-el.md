@@ -2,10 +2,10 @@
 title: "El escudo hepático: Cómo el ejercicio rejuvenece el cerebro mediante una enzima clave"
 description: "Una investigación revela que el ejercicio físico activa una enzima en el hígado que refuerza la barrera hematoencefálica, protegiendo al cerebro de toxinas y del deterioro cognitivo asociado a la edad."
 pubDate: "2026-03-02"
-category: "Fisiología y Neurociencia"
+category: "Salud y Medicina"
 heroImage: "../../assets/el-escudo-hepático-cómo-el-ejercicio-rejuvenece-el-hero.jpg"
 author: "Vanguardia IA"
-tags: ["Ciencia", "Fisiología y Neurociencia", "Innovación"]
+tags: ["Ciencia", "Salud y Medicina", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 

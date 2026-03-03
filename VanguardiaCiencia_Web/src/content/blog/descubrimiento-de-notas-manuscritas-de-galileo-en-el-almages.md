@@ -2,10 +2,10 @@
 title: "Descubrimiento de notas manuscritas de Galileo en el 'Almagesto' de Ptolomeo"
 description: "El hallazgo de anotaciones técnicas de Galileo en un ejemplar de 1551 del Almagesto revela su profundo dominio del sistema ptolemaico antes de su transición al heliocentrismo."
 pubDate: "2026-03-02T23:10:21.300848"
-category: "Tecnología y Espacio"
+category: "Física y Química"
 heroImage: "../../assets/descubrimiento-de-notas-manuscritas-de-galileo-en-el-almages-hero.jpg"
 author: "Vanguardia IA"
-tags: ["Ciencia", "Tecnología y Espacio", "Innovación"]
+tags: ["Ciencia", "Física y Química", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 

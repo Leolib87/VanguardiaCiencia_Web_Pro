@@ -2,10 +2,10 @@
 title: "30 años de Pokémon: Cómo los 'monstruos de bolsillo' han moldeado la ciencia moderna"
 description: "Un análisis sobre el impacto de la franquicia Pokémon en la taxonomía, la educación ecológica y la vocación científica tras tres décadas de historia."
 pubDate: "2026-03-02"
-category: "Ciencia y Sociedad"
+category: "Biología y Genómica"
 heroImage: "../../assets/pikachu-official.png"
-author: "Vanguardia Ciencia"
-tags: ["Ciencia", "Taxonomía", "Educación", "Biología"]
+author: "Vanguardia IA"
+tags: ["Ciencia", "Biología y Genómica", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
 

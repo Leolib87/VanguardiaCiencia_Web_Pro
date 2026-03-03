@@ -4,7 +4,7 @@ description: "Análisis del despliegue de SciSciGPT y la transición de la IA co
 pubDate: "2026-03-02"
 category: "Inteligencia Artificial"
 heroImage: "../../assets/agentes-de-ia-aeroplanos-para-la-mente-y-la-nueva--hero.jpg"
-author: "Vanguardia Ciencia"
+author: "Vanguardia IA"
 tags: ["Ciencia", "Inteligencia Artificial", "Innovación"]
 layout: "../../layouts/BlogPost.astro"
 ---
