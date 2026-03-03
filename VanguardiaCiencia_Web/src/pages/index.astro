@@ -73,7 +73,7 @@ const categoryClass = (cat) => {
 			.hero-image img {
 				width: 100%;
 				max-width: 100%;
-				height: 500px;
+				aspect-ratio: 16 / 9; /* Proporción áurea moderna */
 				object-fit: cover;
 				border-radius: 20px;
 				box-shadow: 0 20px 40px var(--card-shadow);
@@ -84,7 +84,7 @@ const categoryClass = (cat) => {
 				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 				gap: 2.5rem;
 				width: 100%;
-				justify-content: center; /* Centrado del grid */
+				justify-content: center;
 			}
 			.recent-card {
 				text-decoration: none;
@@ -99,6 +99,13 @@ const categoryClass = (cat) => {
 				flex-direction: column;
 				width: 100%;
 				box-sizing: border-box;
+			}
+			.recent-card img {
+				width: 100%;
+				aspect-ratio: 16 / 9; /* Uniformidad total */
+				object-fit: cover;
+				border-radius: 16px;
+				margin-bottom: 1.5rem;
 			}
 
 			@media (max-width: 900px) {
@@ -117,17 +124,19 @@ const categoryClass = (cat) => {
 					text-align: center;
 				}
 				.hero-image img {
-					height: auto;
-					max-height: 300px;
+					aspect-ratio: 16 / 9; /* Mantiene la estética en móvil */
 				}
 				.recent-grid {
-					grid-template-columns: 1fr; /* Una sola columna pura */
+					grid-template-columns: 1fr;
 					padding: 0;
 					gap: 2rem;
 				}
 				.recent-card {
 					max-width: 100%;
 					margin: 0 auto;
+				}
+				.recent-card img {
+					aspect-ratio: 16 / 9;
 				}
 			}
 		</style>
