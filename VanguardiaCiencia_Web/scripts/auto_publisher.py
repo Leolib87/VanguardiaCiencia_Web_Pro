@@ -68,7 +68,7 @@ def create_scientific_post(title, description, content, category, image_prompt=N
     slug = title.lower()
     slug = re.sub(r'[^a-z0-9\s-]', '', slug)
     slug = re.sub(r'[\s]+', '-', slug).strip('-')
-    slug = slug[:60]
+    slug = slug[:120]
     
     filename = f"{slug}.md"
     filepath = CONTENT_DIR / filename
