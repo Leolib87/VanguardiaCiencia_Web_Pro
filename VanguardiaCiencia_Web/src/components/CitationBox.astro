@@ -1,0 +1,77 @@
+---
+interface Props {
+	title: string;
+	pubDate: Date;
+	url: string;
+}
+
+const { title, pubDate, url } = Astro.props;
+const currentYear = new Date().getFullYear();
+const formattedDate = pubDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<div class="citation-box">
+	<div class="citation-header">
+		<span class="material-symbols-outlined">school</span>
+		<h4>Citar este Artículo</h4>
+	</div>
+	<div class="citation-formats">
+		<div class="citation-item">
+			<strong>APA:</strong> 
+			<span class="copy-text">Vanguardia Ciencia Editorial. ({pubDate.getFullYear()}). <em>{title}</em>. Recuperado de {url}</span>
+		</div>
+		<div class="citation-item">
+			<strong>MLA:</strong> 
+			<span class="copy-text">" {title}." <em>Vanguardia Ciencia</em>, {formattedDate}, {url}.</span>
+		</div>
+	</div>
+	<p class="citation-note">Incentivamos el uso de esta información para fines académicos y periodísticos citando la fuente original.</p>
+</div>
+
+<style>
+	.citation-box {
+		margin: 3rem 0;
+		padding: 1.5rem;
+		background: var(--section-bg);
+		border: 1px solid var(--border-color);
+		border-left: 4px solid var(--accent);
+		border-radius: 8px;
+	}
+	.citation-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 1rem;
+		color: var(--accent);
+	}
+	.citation-header h4 {
+		margin: 0;
+		font-size: 1rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.citation-formats {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	.citation-item {
+		font-size: 0.85rem;
+		line-height: 1.5;
+		color: var(--text-color);
+	}
+	.citation-item strong {
+		color: var(--accent);
+		font-family: 'Roboto Mono', monospace;
+	}
+	.copy-text {
+		background: var(--gray-light);
+		padding: 2px 4px;
+		border-radius: 4px;
+	}
+	.citation-note {
+		margin-top: 1rem;
+		font-size: 0.75rem;
+		font-style: italic;
+		color: var(--gray-med);
+	}
+</style>

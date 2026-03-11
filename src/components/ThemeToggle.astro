@@ -1,0 +1,57 @@
+---
+---
+<button id="theme-toggle" aria-label="Cambiar tema">
+	<span class="material-symbols-outlined sun">light_mode</span>
+	<span class="material-symbols-outlined moon">dark_mode</span>
+</button>
+
+<script is:inline>
+	function applyTheme() {
+		const theme = localStorage.getItem('theme') || 'light';
+		document.documentElement.setAttribute('data-theme', theme);
+	}
+
+	function toggleTheme() {
+		const currentTheme = document.documentElement.getAttribute('data-theme');
+		const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+		document.documentElement.setAttribute('data-theme', newTheme);
+		localStorage.setItem('theme', newTheme);
+	}
+
+	// Aplicar al cargar
+	applyTheme();
+
+	// Configurar el botón
+	document.addEventListener('DOMContentLoaded', () => {
+		const button = document.getElementById('theme-toggle');
+		if (button) {
+			button.addEventListener('click', toggleTheme);
+		}
+	});
+
+	// Para Astro View Transitions (si se activan en el futuro)
+	document.addEventListener('astro:after-swap', applyTheme);
+</script>
+
+<style>
+	#theme-toggle {
+		border: none;
+		background: var(--gray-light);
+		cursor: pointer;
+		padding: 0.6rem;
+		display: flex;
+		align-items: center;
+		color: var(--text-color);
+		border-radius: 12px;
+		transition: all 0.2s;
+	}
+	#theme-toggle:hover {
+		background: var(--accent-light);
+		transform: scale(1.05);
+	}
+	.sun { display: none; }
+	.moon { display: block; }
+
+	:global([data-theme='dark']) .sun { display: block; }
+	:global([data-theme='dark']) .moon { display: none; }
+</style>

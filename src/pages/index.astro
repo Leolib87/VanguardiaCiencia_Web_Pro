@@ -1,0 +1,218 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+import AdBanner from '../components/AdBanner.astro';
+
+const posts = (await getCollection('blog')).sort((a, b) => {
+	const dateA = new Date(a.data.pubDate).valueOf();
+	const dateB = new Date(b.data.pubDate).valueOf();
+	
+	if (dateB !== dateA) {
+		return dateB - dateA;
+	}
+	
+	return b.id.localeCompare(a.id);
+});
+
+// Forzar que la noticia más reciente sea la portada
+const featuredPost = posts[0];
+const recentPosts = posts.slice(1);
+
+// Helper para obtener la URL de la imagen de forma segura
+const getImageUrl = (heroImage) => {
+	if (!heroImage) return '/blog-placeholder-about.jpg';
+	return typeof heroImage === 'string' ? heroImage : heroImage.src;
+};
+
+// Helper para clases de categorías (quita tildes y pone guiones)
+const categoryClass = (cat) => {
+	return cat.toLowerCase()
+		.replace(/\s+/g, '-')
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "");
+};
+
+// Helper para Emojis de Fuente
+const sourceEmoji = (source) => {
+	const map = {
+		'Nature': '🔬',
+		'ScienceDaily': '🧪',
+		'ScienceNews': '📰',
+		'Science': '🔭',
+		'Fuente Externa': '🌐'
+	};
+	return map[source] || '📄';
+};
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 100%;
+				max-width: 1200px;
+				margin: auto;
+				padding: 2rem 1rem;
+			}
+			.hero-section {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 3rem;
+				align-items: center;
+				margin-bottom: 5rem;
+				padding: 3rem;
+				background: var(--section-bg);
+				border-radius: 32px;
+				border: 1px solid var(--card-border);
+				box-shadow: 0 10px 30px var(--card-shadow);
+			}
+			.hero-content h1 {
+				font-size: 3.5rem;
+				margin: 0 0 1.5rem 0;
+				line-height: 1.1;
+			}
+			.hero-image img {
+				width: 100%;
+				height: 500px;
+				object-fit: cover;
+				border-radius: 20px;
+				box-shadow: 0 20px 40px var(--card-shadow);
+			}
+			.section-title {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.9rem;
+				text-transform: uppercase;
+				color: var(--accent);
+				font-weight: 700;
+				letter-spacing: 0.1em;
+				margin-bottom: 2rem;
+				display: block;
+			}
+			.recent-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+				gap: 2.5rem;
+			}
+			.recent-card {
+				text-decoration: none;
+				color: inherit;
+				transition: all 0.3s ease;
+				background: var(--card-bg);
+				padding: 1.5rem;
+				border-radius: 24px;
+				border: 1px solid var(--card-border);
+				box-shadow: 0 4px 15px var(--card-shadow);
+			}
+			.recent-card:hover {
+				transform: translateY(-8px);
+				border-color: var(--accent);
+				box-shadow: 0 15px 35px var(--card-shadow);
+			}
+			.recent-card img {
+				width: 100%;
+				height: 220px;
+				object-fit: cover;
+				border-radius: 16px;
+				margin-bottom: 1.5rem;
+			}
+			.recent-card h3 {
+				font-size: 1.5rem;
+				margin: 0.5rem 0;
+				line-height: 1.3;
+			}
+			.meta-tags {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+				margin-bottom: 1.2rem;
+			}
+			.read-tag {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: var(--gray-med);
+				background: var(--gray-light);
+				padding: 0.25rem 0.75rem;
+				border-radius: 100px;
+			}
+			.meta-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 0.8rem;
+			}
+			.read-tag-small {
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.7rem;
+				color: var(--gray-med);
+			}
+			.badge { margin-bottom: 0 !important; }
+
+			@media (max-width: 900px) {
+				.hero-section {
+					grid-template-columns: 1fr;
+					padding: 2rem;
+					gap: 2rem;
+				}
+				.hero-content h1 {
+					font-size: 2.5rem;
+				}
+				.hero-image img {
+					height: 300px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header title={SITE_TITLE} />
+		<main>
+			<section class="hero-section">
+				<div class="hero-content">
+					<span class="section-title">En Portada</span>
+					<div class="meta-tags">
+						<span class={`badge ${categoryClass(featuredPost.data.category)}`}>
+							{sourceEmoji(featuredPost.data.source)} {featuredPost.data.category}
+						</span>
+						<span class="read-tag">⏱️ 3 MIN</span>
+					</div>
+					<h1>{featuredPost.data.title}</h1>
+					<p style="margin-bottom: 2rem; color: var(--text-muted);">{featuredPost.data.description}</p>
+					<a href={`/blog/${featuredPost.id}/`} class="btn-primary">
+						Leer investigación completa →
+					</a>
+				</div>
+				<div class="hero-image">
+					<img src={getImageUrl(featuredPost.data.heroImage)} alt={featuredPost.data.title} />
+				</div>
+			</section>
+
+			<AdBanner slot="home-middle" />
+
+			<section>
+				<span class="section-title">Vanguardia 2026</span>
+				<div class="recent-grid">
+					{recentPosts.map((post) => (
+						<a href={`/blog/${post.id}/`} class="recent-card">
+							<img src={getImageUrl(post.data.heroImage)} alt={post.data.title} />
+							<div class="meta-row">
+								<span class={`badge ${categoryClass(post.data.category)}`}>
+									{sourceEmoji(post.data.source)} {post.data.category}
+								</span>
+								<span class="read-tag-small">⏱️ 3 MIN</span>
+							</div>
+							<p style="font-size: 0.85rem; color: var(--gray-med); margin-bottom: 0.5rem;"><FormattedDate date={post.data.pubDate} /></p>
+							<h3>{post.data.title}</h3>
+						</a>
+					))}
+				</div>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>

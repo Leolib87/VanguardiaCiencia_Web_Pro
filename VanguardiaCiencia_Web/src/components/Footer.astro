@@ -1,0 +1,116 @@
+---
+const today = new Date();
+import { SITE_TITLE } from '../consts';
+---
+
+<footer>
+	<div class="footer-grid">
+		<div class="footer-section">
+			<h4>Suscripciones Gratuitas</h4>
+			<p>Mantente informado con el boletín gratuito de Vanguardia Ciencia, actualizado diaria y semanalmente. O consulta nuestros feeds de noticias en tu lector RSS:</p>
+			<ul class="footer-links">
+				<li><a href="mailto:editorial@vanguardiaciencia.com"><span class="material-symbols-outlined icon-v">mail</span> Newsletter por Email</a></li>
+				<li><a href="/rss.xml"><span class="material-symbols-outlined icon-v">rss_feed</span> Feeds RSS</a></li>
+			</ul>
+		</div>
+		<div class="footer-section">
+			<h4>Síguenos</h4>
+			<p>Mantente al día con las últimas noticias de Vanguardia Ciencia a través de nuestras redes:</p>
+			<ul class="footer-links">
+				<li><a href="#"><i class="social-icon">📘</i> Facebook</a></li>
+				<li><a href="#"><i class="social-icon">𝕏</i> Twitter</a></li>
+				<li><a href="#"><i class="social-icon">📸</i> Instagram</a></li>
+				<li><a href="#"><i class="social-icon">🟢</i> Canal de WhatsApp</a></li>
+				<li><a href="#" class="patreon-link"><span class="material-symbols-outlined icon-v" style="color: #ff424d;">stars</span> Apoyar en Patreon</a></li>
+			</ul>
+		</div>
+		<div class="footer-section">
+			<h4>¿Tienes Comentarios?</h4>
+			<p>Dinos qué piensas de Vanguardia Ciencia: agradecemos comentarios tanto positivos como críticos. ¿Algún problema al usar el sitio? ¿Preguntas?</p>
+			<ul class="footer-links">
+				<li><a href="mailto:editorial@vanguardiaciencia.com"><span class="material-symbols-outlined icon-v">chat</span> Deja tu Feedback</a></li>
+				<li><a href="/about"><span class="material-symbols-outlined icon-v">contact_support</span> Contáctanos</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="footer-bottom">
+		&copy; {today.getFullYear()} {SITE_TITLE}. Todos los derechos reservados.
+		<br />
+		Red de Divulgación Científica de Alta Autoridad.
+	</div>
+</footer>
+
+<style>
+	.material-symbols-outlined.icon-v {
+		font-size: 1.1rem;
+		vertical-align: middle;
+		margin-right: 0.5rem;
+		color: var(--gray-med);
+	}
+	.social-icon {
+		font-style: normal;
+		margin-right: 0.5rem;
+	}
+	footer {
+		padding: 4em 1.5rem 2em 1.5rem;
+		background: var(--footer-bg);
+		color: var(--gray-med);
+		border-top: 1px solid var(--border-color);
+		font-family: 'Inter', sans-serif;
+		transition: background 0.3s ease, color 0.3s ease;
+	}
+	.footer-grid {
+		max-width: 1020px;
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 3.5rem;
+		margin-bottom: 3rem;
+	}
+	.footer-section h4 {
+		font-size: 1.1rem;
+		margin-bottom: 1.2rem;
+		color: var(--text-color);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		font-family: 'Roboto Mono', monospace;
+		font-weight: 700;
+	}
+	.footer-section p {
+		font-size: 0.9rem;
+		line-height: 1.6;
+		margin-bottom: 1.2rem;
+		color: var(--gray-med);
+		text-align: justify;
+	}
+	.footer-links {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.footer-links li {
+		margin-bottom: 0.8rem;
+	}
+	.footer-links a {
+		color: var(--accent);
+		text-decoration: none;
+		font-size: 0.95rem;
+		font-weight: 600;
+		transition: all 0.2s ease;
+	}
+	.footer-links a:hover {
+		color: #0056b3;
+		text-decoration: underline;
+	}
+	.footer-bottom {
+		text-align: center;
+		padding-top: 2rem;
+		border-top: 1px solid var(--border-color);
+		font-size: 0.8rem;
+		color: var(--gray-med);
+		line-height: 1.8;
+	}
+	@media (max-width: 600px) {
+		.footer-grid { gap: 2.5rem; }
+	}
+</style>

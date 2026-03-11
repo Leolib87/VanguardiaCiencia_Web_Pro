@@ -1,0 +1,230 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import AdBanner from '../components/AdBanner.astro';
+import NewsletterBox from '../components/NewsletterBox.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import CitationBox from '../components/CitationBox.astro';
+import { getCollection } from 'astro:content';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const currentUrl = Astro.url.toString();
+
+const allPosts = await getCollection('blog');
+const relatedPosts = allPosts
+	.filter((post) => post.data.title !== title)
+	.sort(() => Math.random() - 0.5)
+	.slice(0, 3);
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={title} description={description} image={heroImage} />
+		<script type="application/ld+json" is:inline set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "NewsArticle",
+			"headline": title,
+			"description": description,
+			"image": [heroImage?.src || heroImage],
+			"datePublished": pubDate,
+			"dateModified": updatedDate || pubDate,
+			"author": [{
+				"@type": "Organization",
+				"name": "Vanguardia Ciencia Editorial",
+				"url": "https://vanguardiaciencia.com/about"
+			}],
+			"publisher": {
+				"@type": "Organization",
+				"name": "Vanguardia Ciencia",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://vanguardiaciencia.com/favicon.svg"
+				}
+			}
+		})} />
+		<style>
+			main {
+				width: 100%;
+				max-width: 1400px; /* Web más ancha */
+				margin: auto;
+				padding: 2rem 2rem;
+			}
+			.hero-image {
+				width: 100%;
+				max-width: 1100px; /* Imagen más imponente */
+				margin: 0 auto 3rem auto;
+			}
+			.hero-image img {
+				display: block;
+				margin: 0 auto;
+				border-radius: 24px;
+				box-shadow: 0 25px 50px var(--card-shadow);
+				width: 100%;
+				height: auto;
+				max-height: 700px;
+				object-fit: cover;
+			}
+			@media (max-width: 768px) {
+				main {
+					padding: 1rem;
+				}
+				.hero-image img {
+					max-height: 400px;
+					border-radius: 12px;
+				}
+			}
+			.prose {
+				width: 1000px; /* Cuerpo de lectura más ancho */
+				max-width: 100%;
+				margin: auto;
+				color: var(--text-color);
+				text-align: justify;
+				text-justify: inter-word;
+				hyphens: none; /* Sin cortes de palabras */
+				line-height: 1.8; /* Mejor legibilidad */
+			}
+			.prose h1, .prose h2, .prose h3 {
+				text-align: left; /* Títulos ordenados a la izquierda */
+				hyphens: none;
+				word-break: keep-all;
+			}
+			@media (max-width: 900px) {
+				.prose {
+					padding: 0 1rem;
+				}
+			}
+			.verified-badge {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5rem;
+				background: #e6f9ed;
+				color: #1a7f37;
+				padding: 0.4rem 1rem;
+				border-radius: 100px;
+				font-size: 0.75rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				margin-bottom: 1.5rem;
+				font-family: 'Roboto Mono', monospace;
+				border: 1px solid #dafbe1;
+			}
+			[data-theme='dark'] .verified-badge {
+				background: rgba(26, 127, 55, 0.2);
+				border-color: rgba(26, 127, 55, 0.3);
+			}
+			.title {
+				margin-bottom: 2em;
+				text-align: center;
+			}
+			.date {
+				margin-bottom: 1em;
+				color: var(--gray-med);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 1rem;
+				font-family: 'Roboto Mono', monospace;
+				font-size: 0.9rem;
+			}
+			.reading-time {
+				color: var(--accent);
+				font-weight: 700;
+			}
+			.related-section {
+				margin-top: 5rem;
+				padding-top: 3rem;
+				border-top: 1px solid var(--border-color);
+			}
+			.related-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 2rem;
+			}
+			.related-card {
+				text-decoration: none;
+				color: inherit;
+			}
+			.related-card img {
+				width: 100%;
+				height: 180px;
+				object-fit: cover;
+				border-radius: 12px;
+				margin-bottom: 1rem;
+			}
+			.related-card h4 {
+				font-size: 1.1rem;
+				line-height: 1.4;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="global-progress-bar"></div>
+		<Header />
+		<ShareButtons />
+		<main>
+			<article>
+				<div class="hero-image">
+					{heroImage && <Image width={1200} height={600} src={heroImage} alt={title} />}
+				</div>
+				<div class="prose">
+					<div class="title">
+						<div class="verified-badge">
+							<span class="material-symbols-outlined">verified</span>
+							Fuente Verificada: Nature / Science Index
+						</div>
+						<div class="date">
+							<FormattedDate date={pubDate} />
+							<span class="reading-time">⏱️ 3 min</span>
+						</div>
+						<h1>{title}</h1>
+					</div>
+					<AdBanner slot="blog-top" />
+					<slot />
+					<NewsletterBox />
+					<CitationBox title={title} pubDate={pubDate} url={currentUrl} />
+					
+					<div class="related-section">
+						<h3 style="margin-bottom: 2rem;">Más Noticias de Vanguardia</h3>
+						<div class="related-grid">
+							{relatedPosts.map((post) => (
+								<a href={`/blog/${post.id}/`} class="related-card">
+									<img src={typeof post.data.heroImage === 'string' ? post.data.heroImage : post.data.heroImage?.src} alt="" />
+									<div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 0.5rem; color: var(--accent); font-weight: 700; text-transform: uppercase;">
+										<span>{post.data.category}</span>
+										<span>⏱️ 3 MIN</span>
+									</div>
+									<h4>{post.data.title}</h4>
+								</a>
+							))}
+						</div>
+					</div>
+					<AdBanner slot="blog-bottom" />
+				</div>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style is:global>
+	.sticky-footer-ad {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background: var(--header-bg);
+		backdrop-filter: blur(10px);
+		border-top: 1px solid var(--border-color);
+		z-index: 1000;
+		display: flex;
+		justify-content: center;
+		padding: 10px 0;
+	}
+</style>

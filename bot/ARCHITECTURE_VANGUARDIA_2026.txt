@@ -1,0 +1,35 @@
+================================================================================
+BOT: VANGUARDIA CIENCIA - EDITOR & WEB GESTOR (v1.0)
+LOCATION: C:\Users\leoli\BOTS_SYSTEM\VanguardiaCiencia_Web\bot
+DATE: 2026-03-10
+================================================================================
+
+RESUMEN TÉCNICO:
+--------------------------------------------------------------------------------
+Este bot actúa como el editor automático y gestor de la web 'Vanguardia Ciencia'.
+Funciona sobre una instancia aislada de Gemini CLI con su propio historial y sesión.
+La arquitectura integra el bot de publicación con el servidor web Astro.
+
+CONFIGURACIÓN DE AISLAMIENTO:
+--------------------------------------------------------------------------------
+- GEMINI_CLI_HOME: C:\Users\leoli\BOTS_SYSTEM\VanguardiaCiencia_Web\bot
+- DIRECTORIO DE SESIÓN: .gemini/
+- MODO: YOLO (-y)
+- SESIÓN: Persistente (-r vanguardia-editor)
+
+FLUJO DE TRABAJO:
+--------------------------------------------------------------------------------
+1. El bot escanea fuentes científicas (PubMed, Nature, etc.).
+2. Gemini procesa, traduce y adapta el contenido al tono de Vanguardia Ciencia.
+3. El contenido se publica automáticamente en la web Astro.
+4. El servidor web Astro (dev) se lanza en paralelo para previsualización y gestión local.
+
+CONTROL DE CAMBIOS:
+--------------------------------------------------------------------------------
+[2026-03-10] v1.0 - Creación e inicialización:
+- Estructura de bot aislada según estándar Leandro Torres 2026.
+- Creación de carpeta .gemini local para aislamiento total.
+- Configuración de variables de entorno específicas en .env.
+- Configuración de auto-arranque dual (Bot + Web Astro) mediante .vbs invisible.
+- Integración de scripts de scouting existentes (publisher.py, radar.py).
+================================================================================

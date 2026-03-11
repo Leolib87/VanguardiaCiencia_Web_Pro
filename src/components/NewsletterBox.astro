@@ -1,0 +1,96 @@
+---
+---
+<div class="newsletter-box">
+	<div class="newsletter-content">
+		<h3>¿Te fascina el futuro?</h3>
+		<p>Únete a +5,000 mentes curiosas y recibe cada semana los descubrimientos más impactantes de Nature y Science directamente en tu bandeja de entrada.</p>
+		<form class="newsletter-form" onsubmit="return false;">
+			<input type="email" placeholder="Tu mejor email..." required />
+			<button type="submit">Suscribirme Gratis</button>
+		</form>
+		<div class="alternative-channels" style="margin-top: 1rem; display: flex; justify-content: center; gap: 15px;">
+			<a href="#" class="whatsapp-btn" style="display: flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 0.6rem 1.2rem; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.9rem;">
+				<span>🟢</span> Únete al Canal de WhatsApp
+			</a>
+		</div>
+		<span class="spam-free" style="display: block; margin-top: 1rem;">🔒 Sin spam. Solo ciencia de alta autoridad.</span>
+	</div>
+</div>
+
+<style>
+	.newsletter-box {
+		background: linear-gradient(135deg, #0070f3 0%, #00c6ff 100%);
+		border-radius: 20px;
+		padding: 2.5rem;
+		margin: 3rem 0;
+		color: white;
+		text-align: center;
+		box-shadow: 0 20px 40px rgba(0, 112, 243, 0.2);
+		transition: all 0.3s ease;
+	}
+	:global([data-theme='dark']) .newsletter-box {
+		background: linear-gradient(135deg, #004a99 0%, #0070f3 100%);
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+	}
+	.newsletter-content h3 {
+		color: white;
+		margin-top: 0;
+		font-size: 1.8rem;
+		margin-bottom: 1rem;
+	}
+	.newsletter-content p {
+		font-size: 1.1rem;
+		margin-bottom: 2rem;
+		opacity: 0.9;
+		color: white;
+	}
+	.newsletter-form {
+		display: flex;
+		gap: 10px;
+		max-width: 500px;
+		margin: 0 auto 1.5rem;
+	}
+	.newsletter-form input {
+		flex: 1;
+		padding: 1rem 1.5rem;
+		border-radius: 12px;
+		border: 1px solid rgba(255,255,255,0.2);
+		font-size: 1rem;
+		outline: none;
+		background: rgba(255, 255, 255, 0.9);
+		color: #333;
+	}
+	:global([data-theme='dark']) .newsletter-form input {
+		background: rgba(255, 255, 255, 0.1);
+		color: white;
+		border-color: rgba(255,255,255,0.3);
+	}
+	:global([data-theme='dark']) .newsletter-form input::placeholder {
+		color: rgba(255,255,255,0.5);
+	}
+	.newsletter-form button {
+		background: #000;
+		color: white;
+		padding: 1rem 2rem;
+		border-radius: 12px;
+		border: none;
+		font-weight: 700;
+		cursor: pointer;
+		transition: transform 0.2s, background 0.2s;
+	}
+	:global([data-theme='dark']) .newsletter-form button {
+		background: #ffffff;
+		color: #000;
+	}
+	.newsletter-form button:hover {
+		transform: scale(1.05);
+	}
+	.spam-free {
+		font-size: 0.8rem;
+		opacity: 0.7;
+		font-family: 'Roboto Mono', monospace;
+	}
+	@media (max-width: 600px) {
+		.newsletter-form { flex-direction: column; }
+	}
+</style>

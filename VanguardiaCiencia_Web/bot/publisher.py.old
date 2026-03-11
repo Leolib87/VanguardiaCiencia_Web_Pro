@@ -1,0 +1,145 @@
+import os
+import sys
+import asyncio
+import logging
+import json
+import re
+import feedparser
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CallbackQueryHandler, CommandHandler, filters
+from pathlib import Path
+
+# --- COMPATIBILIDAD WINDOWS ---
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+# Rutas y Configuración
+BASE_DIR = Path(__file__).parent.parent
+sys.path.append(str(BASE_DIR / "scripts"))
+from auto_publisher import create_scientific_post, push_to_github
+
+TOKEN = "8530303251:AAFqw7fYLFPWNRC-x1HySlnPI1PpnIFKio8"
+ALLOWED_USER_ID = 7463161678
+RSS_FEED_URL = "https://www.nature.com/nature.rss"
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Memoria temporal para la sesión actual
+current_feed_items = {}
+pending_analysis = {}
+
+async def translate_title(text):
+    """Traduce rápidamente el título para la lista de selección."""
+    try:
+        safe_text = text.replace('"', "'")
+        command = f'gemini -y -p "Traduce este título científico al español de forma natural: {safe_text}"'
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, _ = await process.communicate()
+        return stdout.decode('utf-8', errors='ignore').strip()
+    except: return text
+
+async def process_full_news(url):
+    """Genera el artículo completo solo de la noticia seleccionada."""
+    instruction = (
+        "Actúa como Editor Jefe. Analiza el link y genera un JSON: "
+        "{'title', 'category', 'description', 'content', 'image_prompt'}. "
+        "Usa español profesional y Markdown para el contenido."
+    )
+    try:
+        command = f'gemini -y -p "{instruction} Link: {url}" -o stream-json'
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        
+        full_response = ""
+        while True:
+            line = await process.stdout.readline()
+            if not line: break
+            try:
+                line_decoded = line.decode('utf-8', errors='ignore').strip()
+                if not line_decoded.startswith('{'): continue
+                data = json.loads(line_decoded)
+                chunk = data.get('content', data.get('text', ''))
+                if chunk: full_response += chunk
+            except: continue
+        
+        await process.wait()
+        clean_text = re.sub(r'```json\s*|```\s*', '', full_response).strip()
+        json_match = re.search(r'\{.*\}', clean_text, re.DOTALL)
+        return json.loads(json_match.group(0)) if json_match else None
+    except: return None
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🔬 **VANGUARDIA CIENCIA - SISTEMA EDITORIAL**\n\nUsa /recientes para ver los últimos titulares de Nature.")
+
+async def recientes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ALLOWED_USER_ID: return
+    
+    msg = await update.message.reply_text("📡 Obteniendo titulares de Nature...")
+    feed = feedparser.parse(RSS_FEED_URL)
+    
+    text = "📂 **ÚLTIMAS NOTICIAS EN NATURE:**\n\n"
+    keyboard = []
+    current_feed_items.clear()
+
+    for i, entry in enumerate(feed.entries[:5]):
+        # Traducir título para que Leandro pueda elegir mejor
+        translated = await translate_title(entry.title)
+        item_id = str(i + 1)
+        current_feed_items[item_id] = entry.link
+        text += f"{item_id}. 📰 **{translated}**\n\n"
+        keyboard.append(InlineKeyboardButton(item_id, callback_query_data=f"select_{item_id}"))
+
+    await msg.edit_text(text, reply_markup=InlineKeyboardMarkup([keyboard]), parse_mode="Markdown")
+
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data.split('_')
+    action = data[0]
+    val = data[1]
+
+    if action == "select":
+        url = current_feed_items.get(val)
+        if not url:
+            await query.edit_message_text("❌ Error: Selección expirada. Usa /recientes de nuevo.")
+            return
+        
+        await query.edit_message_text(f"🧠 Analizando y traduciendo la noticia {val}...\n(Esto tardará unos 40 segundos)")
+        post_data = await process_full_news(url)
+        
+        if post_data:
+            pending_analysis[val] = {'data': post_data, 'url': url}
+            preview = (
+                f"📝 **VISTA PREVIA EDITORIAL**\n\n"
+                f"📌 **Título:** {post_data['title']}\n"
+                f"🗂️ **Categoría:** {post_data['category']}\n\n"
+                f"📖 **Contenido:**\n{post_data['content'][:500]}...\n\n"
+                f"¿Publicar en la web?"
+            )
+            btns = [[InlineKeyboardButton("✅ Publicar Ahora", callback_query_data=f"pub_{val}"),
+                     InlineKeyboardButton("🗑️ Descartar", callback_query_data="cancel_0")]]
+            await query.edit_message_text(preview, reply_markup=InlineKeyboardMarkup(btns), parse_mode="Markdown")
+        else:
+            await query.edit_message_text("❌ Error al procesar la noticia con Gemini.")
+
+    elif action == "pub":
+        item = pending_analysis.get(val)
+        await query.edit_message_text("🚀 Subiendo a GitHub y Vercel...")
+        try:
+            create_scientific_post(item['data']['title'], item['data']['description'], item['data']['content'], item['data']['category'], item['data'].get('image_prompt'))
+            push_to_github()
+            await query.edit_message_text(f"✨ **¡PUBLICADO!**\n'{item['data']['title']}' ya está online.")
+        except Exception as e:
+            await query.edit_message_text(f"❌ Error: {e}")
+    
+    elif action == "cancel":
+        await query.edit_message_text("🗑️ Selección descartada. Usa /recientes para ver otras.")
+
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("recientes", recientes))
+    application.add_handler(CallbackQueryHandler(button_callback))
+    application.run_polling()

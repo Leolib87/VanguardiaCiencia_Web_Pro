@@ -1,0 +1,115 @@
+---
+interface Props {
+	slot?: string;
+	format?: 'horizontal' | 'rectangle' | 'vertical';
+}
+
+const { slot = "default", format = "horizontal" } = Astro.props;
+
+const styles = {
+	horizontal: "width: 100%; height: 90px; max-width: 728px;",
+	rectangle: "width: 300px; height: 250px;",
+	vertical: "width: 160px; height: 600px;"
+};
+---
+
+<div class="ad-container" id={`ad-${slot}`} style={styles[format]}>
+	<div class="ad-header">
+		<span class="ad-label">PUBLICIDAD</span>
+		<div class="ads-by-google">
+			<span>Anuncios de Google</span>
+			<span class="info-icon">i</span>
+		</div>
+	</div>
+	{slot === "mobile-sticky" && <button class="close-ad" onclick={`document.getElementById('ad-${slot}').style.display='none'`}>×</button>}
+	<div class="ad-content">
+		<span class="ad-placeholder">Espacio Publicitario Reservado</span>
+		<p class="ad-hint">Sector: Investigación Científica / Deep Tech / IA</p>
+	</div>
+</div>
+
+<style>
+	.ad-container {
+		margin: 2.5rem auto;
+		background: #fafafa;
+		border: 1px solid #e0e0e0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		position: relative;
+		transition: opacity 0.3s ease;
+		box-sizing: border-box;
+	}
+	.ad-header {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 2px 8px;
+		box-sizing: border-box;
+	}
+	.ad-label {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 9px;
+		color: #999;
+		letter-spacing: 0.05em;
+	}
+	.ads-by-google {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 9px;
+		color: #999;
+		font-family: Arial, sans-serif;
+	}
+	.info-icon {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		line-height: 10px;
+		text-align: center;
+		border-radius: 50%;
+		background: #ccc;
+		color: white;
+		font-size: 8px;
+		font-weight: bold;
+	}
+	.close-ad {
+		position: absolute;
+		top: 2px;
+		right: 40px; /* Separado del icono de info */
+		background: none;
+		border: none;
+		font-size: 18px;
+		color: #999;
+		cursor: pointer;
+		padding: 0;
+		z-index: 10;
+		line-height: 1;
+	}
+	.close-ad:hover {
+		color: #333;
+	}
+	.ad-content {
+		text-align: center;
+		padding: 10px;
+	}
+	.ad-placeholder {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #777;
+		display: block;
+	}
+	.ad-hint {
+		font-size: 0.75rem;
+		color: #aaa;
+		margin: 4px 0 0 0;
+		font-style: italic;
+	}
+</style>

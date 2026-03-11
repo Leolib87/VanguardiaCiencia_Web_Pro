@@ -1,0 +1,133 @@
+---
+import { SITE_TITLE } from '../consts';
+import HeaderLink from './HeaderLink.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import Search from './Search.astro';
+import { getCollection } from 'astro:content';
+
+// Obtener todas las categorías únicas dinámicamente
+const allPosts = await getCollection('blog');
+const categories = [...new Set(allPosts.map((post) => post.data.category).filter(Boolean))].sort();
+---
+
+<header>
+	<nav>
+		<div class="top-nav">
+			<div class="logo">
+				<a href="/">{SITE_TITLE}</a>
+			</div>
+			<div class="nav-actions">
+				<Search />
+				<ThemeToggle />
+			</div>
+		</div>
+		<div class="bottom-nav">
+			<div class="internal-links">
+				<HeaderLink href="/">Inicio</HeaderLink>
+				{categories.map((category) => (
+					<HeaderLink href={`/blog?category=${encodeURIComponent(category)}`}>
+						{category}
+					</HeaderLink>
+				))}
+				<HeaderLink href="/about">Acerca de</HeaderLink>
+			</div>
+		</div>
+	</nav>
+</header>
+
+<style>
+	header {
+		margin: 0;
+		padding: 0;
+		background: var(--header-bg);
+		backdrop-filter: blur(12px);
+		border-bottom: 1px solid var(--border-color);
+		position: sticky;
+		top: 0;
+		z-index: 1000;
+	}
+	
+	nav {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	.top-nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 70px;
+		border-bottom: 1px solid transparent;
+	}
+
+	.logo a {
+		font-family: 'Roboto Mono', monospace;
+		font-weight: 700;
+		font-size: 1.5rem;
+		text-decoration: none;
+		color: var(--text-color);
+		letter-spacing: -0.02em;
+	}
+
+	.nav-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.bottom-nav {
+		display: flex;
+		justify-content: center;
+		padding: 0.5rem 0 1rem 0;
+	}
+
+	.internal-links {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap; /* Ajuste automático sin scroll */
+		max-width: 1000px;
+		margin: 0 auto;
+	}
+
+	.internal-links a {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 0.8rem; /* Tamaño optimizado */
+		font-weight: 600;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--gray-med);
+		padding: 0.4rem 1.2rem;
+		border-radius: 100px;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		white-space: nowrap;
+		border: 1px solid transparent;
+		background: var(--card-bg); /* Un toque de contraste */
+	}
+
+	.internal-links a:hover, .internal-links a.active {
+		color: var(--accent);
+		background: var(--accent-light);
+		border-color: var(--accent);
+		transform: translateY(-1px);
+	}
+
+	@media (max-width: 768px) {
+		.top-nav {
+			height: 60px;
+		}
+		.logo a {
+			font-size: 1.2rem;
+		}
+		.internal-links {
+			gap: 0.5rem;
+			padding: 0 0.5rem;
+		}
+		.internal-links a {
+			font-size: 0.7rem;
+			padding: 0.3rem 0.8rem;
+		}
+	}
+</style>
